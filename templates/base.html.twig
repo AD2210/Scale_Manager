@@ -12,10 +12,12 @@
     <title>{% block title %}Scale Manager{% endblock %}</title>
 
     {% block stylesheets %}
+            {{ encore_entry_link_tags('app') }}
         {{ encore_entry_link_tags('app') }}
     {% endblock %}
 
     {% block javascripts %}
+            {{ encore_entry_script_tags('app') }}
             {% block importmap %}{{ importmap('app') }}{% endblock %}
         {{ encore_entry_script_tags('app') }}
     {% endblock %}
@@ -161,15 +163,5 @@
         </div>
     </div>
 </div>
-<script>
-    window.appConfig = {
-        timeout: {
-            reload: {{ reload }},
-            toast: {{ toast }},
-            highlight: {{ highlight }},
-            warningClear: {{ warning }}
-        }
-    };
-</script>
 </body>
 </html>
