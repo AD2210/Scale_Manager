@@ -10,8 +10,8 @@
 
 {% block body %}
     <div class="container mt-1 ms-1">
-        <table class="table table-hover align-middle" id="customers-table">
-            <thead class="table-light">
+        <table class="table table-hover align-middle table-striped border shadow-sm" id="customers-table">
+            <thead>
             <tr>
                 <th class="col-6">Nom</th>
                 <th class="col-2 text-center">Actif</th>
@@ -19,7 +19,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr id="new-item-row">
+            <tr class= "table-success" id="new-item-row">
                 {% include 'components/editable/_input_field.html.twig' with {
                     id: 'new-name',
                     placeholder: 'Nom'
