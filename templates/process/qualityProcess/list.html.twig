@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'components/_table_wrapper.html.twig' %}
 
 {% block title %}Liste des processus qualité{% endblock %}
 
@@ -6,71 +6,68 @@
     <h1 class="h4 mb-0">Liste des processus qualité</h1>
 {% endblock %}
 
-{% block body %}
-    <div class="container mt-1 ms-1">
-        <table class="table table-hover align-middle" id="quality-process-table">
-            <thead class="table-light">
-            <tr>
-                <th class="col-3">Nom</th>
-                <th class="col-1 text-center">Actif</th>
-                <th class="col-3">Commentaire</th>
-                <th class="col-3">Lien méthode</th>
-                <th class="col-2 text-center">Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr id="new-item-row">
-                {% include 'components/editable/_input_field.html.twig' with {
-                    id: 'new-name',
-                    placeholder: 'Nom'
-                } %}
+{% block table_head %}
+    <tr>
+        <th class="col-3">Nom</th>
+        <th class="col-1 text-center">Actif</th>
+        <th class="col-3">Commentaire</th>
+        <th class="col-3">Lien méthode</th>
+        <th class="col-2 text-center">Actions</th>
+    </tr>
+{% endblock %}
 
-                {% include 'components/editable/_checkbox_field.html.twig' with {
-                    id: 'new-is-active'
-                } %}
+{% block table_add_form %}
+    <tr id="new-item-row">
+        {% include 'components/editable/_input_field.html.twig' with {
+            id: 'new-name',
+            placeholder: 'Nom'
+        } %}
 
-                {% include 'components/editable/_textarea_field.html.twig' with {
-                    id: 'new-comment'
-                } %}
+        {% include 'components/editable/_checkbox_field.html.twig' with {
+            id: 'new-is-active'
+        } %}
 
-                {% include 'components/editable/_file_field.html.twig' with {
-                    id: 'new-method-link'
-                } %}
+        {% include 'components/editable/_textarea_field.html.twig' with {
+            id: 'new-comment'
+        } %}
 
-                {% include 'components/buttons/_add_button.html.twig' with {
-                    id: 'add-button',
-                    title: 'Ajouter'
-                } %}
-            </tr>
+        {% include 'components/editable/_file_field.html.twig' with {
+            id: 'new-method-link'
+        } %}
 
-            {% for item in items %}
-                <tr data-id="{{ item.id }}">
-                    {% include 'components/editable/_text_cell.html.twig' with {
-                        field: 'name',
-                        value: item.name
-                    } %}
+        {% include 'components/buttons/_add_button.html.twig' with {
+            id: 'add-button',
+            title: 'Ajouter'
+        } %}
+    </tr>
+{% endblock %}
 
-                    {% include 'components/editable/_checkbox_cell.html.twig' with {
-                        field: 'isActive',
-                        value: item.isActive
-                    } %}
+{% block table_rows %}
+    {% for item in items %}
+        <tr data-id="{{ item.id }}">
+            {% include 'components/editable/_text_cell.html.twig' with {
+                field: 'name',
+                value: item.name
+            } %}
 
-                    {% include 'components/editable/_textarea_cell.html.twig' with {
-                        field: 'comment',
-                        value: item.comment
-                    } %}
+            {% include 'components/editable/_checkbox_cell.html.twig' with {
+                field: 'isActive',
+                value: item.isActive
+            } %}
 
-                    {% include 'components/editable/_file_cell.html.twig' with {
-                        field: 'methodLink',
-                        value: item.methodLink,
-                        view_route: 'app_quality_process_view',
-                        id: item.id
-                    } %}
+            {% include 'components/editable/_textarea_cell.html.twig' with {
+                field: 'comment',
+                value: item.comment
+            } %}
 
-                    {% include 'components/buttons/_delete_button.html.twig' %}
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+            {% include 'components/editable/_file_cell.html.twig' with {
+                field: 'methodLink',
+                value: item.methodLink,
+                view_route: 'app_quality_process_view',
+                id: item.id
+            } %}
+
+            {% include 'components/buttons/_delete_button.html.twig' %}
+        </tr>
+    {% endfor %}
 {% endblock %}

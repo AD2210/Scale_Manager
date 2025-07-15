@@ -1,6 +1,6 @@
 {% set entityClass = 'App\\Entity\\Base\\SlicerProfil' %}
 
-{% extends 'base.html.twig' %}
+{% extends 'components/_table_wrapper.html.twig' %}
 
 {% block title %}Liste des profils Slicer{% endblock %}
 
@@ -8,61 +8,58 @@
     <h1 class="h4 mb-0">Liste des profils Slicer</h1>
 {% endblock %}
 
-{% block body %}
-    <div class="container mt-1 ms-1">
-        <table class="table table-hover align-middle" id="slicer-profils-table">
-            <thead class="table-light">
-            <tr>
-                <th class="col-4">Nom</th>
-                <th class="col-4">Fichier</th>
-                <th class="col-2 text-center">Actif</th>
-                <th class="col-2 text-center">Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr id="new-item-row">
-                {% include 'components/editable/_input_field.html.twig' with {
-                    id: 'new-name',
-                    placeholder: 'Nom'
-                } %}
+{% block table_head %}
+    <tr>
+        <th class="col-4">Nom</th>
+        <th class="col-4">Fichier</th>
+        <th class="col-2 text-center">Actif</th>
+        <th class="col-2 text-center">Actions</th>
+    </tr>
+{% endblock %}
 
-                <td>
-                    <input type="file" id="new-file-link" class="form-control">
-                </td>
+{% block table_add_form %}
+    <tr id="new-item-row">
+        {% include 'components/editable/_input_field.html.twig' with {
+            id: 'new-name',
+            placeholder: 'Nom'
+        } %}
 
-                {% include 'components/editable/_checkbox_field.html.twig' with {
-                    id: 'new-is-active'
-                } %}
+        <td>
+            <input type="file" id="new-file-link" class="form-control">
+        </td>
 
-                {% include 'components/buttons/_add_button.html.twig' with {
-                    id: 'add-button',
-                    title: 'Ajouter un profil'
-                } %}
-            </tr>
-            {% for profil in profils %}
-                <tr data-id="{{ profil.id }}">
-                    {% include 'components/editable/_text_cell.html.twig' with {
-                        field: 'name',
-                        value: profil.name
-                    } %}
+        {% include 'components/editable/_checkbox_field.html.twig' with {
+            id: 'new-is-active'
+        } %}
 
-                    {% include 'components/editable/_file_cell.html.twig' with {
-                        field: 'fileLink',
-                        value: profil.fileLink,
-                        view_route: 'app_slicer_profil_view',
-                        id: profil.id
-                    } %}
+        {% include 'components/buttons/_add_button.html.twig' with {
+            id: 'add-button',
+            title: 'Ajouter un profil'
+        } %}
+    </tr>
+{% endblock %}
+{% block table_rows %}
+    {% for profil in profils %}
+        <tr data-id="{{ profil.id }}">
+            {% include 'components/editable/_text_cell.html.twig' with {
+                field: 'name',
+                value: profil.name
+            } %}
+
+            {% include 'components/editable/_file_cell.html.twig' with {
+                field: 'fileLink',
+                value: profil.fileLink,
+                view_route: 'app_slicer_profil_view',
+                id: profil.id
+            } %}
 
 
-                    {% include 'components/editable/_checkbox_cell.html.twig' with {
-                        field: 'isActive',
-                        value: profil.isActive
-                    } %}
+            {% include 'components/editable/_checkbox_cell.html.twig' with {
+                field: 'isActive',
+                value: profil.isActive
+            } %}
 
-                    {% include 'components/buttons/_delete_button.html.twig' %}
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+            {% include 'components/buttons/_delete_button.html.twig' %}
+        </tr>
+    {% endfor %}
 {% endblock %}
