@@ -101,10 +101,11 @@ class AppFixtures extends Fixture
 
         foreach ($projects as $project) {
             $baseName = $project->getId() . $project->getTitle();
+            $projectDir = "$basePath/$baseName";
             $modelDir = "$basePath/$baseName/Model";
             $dataDir = "$basePath/$baseName/CustomerData";
 
-            $filesystem->mkdir([$baseName, $modelDir, $dataDir]);
+            $filesystem->mkdir([$projectDir, $modelDir, $dataDir]);
             $project->setModelLink("$basePath/$baseName/Model");
             $project->setCustomerDataLink("$basePath/$baseName/CustomerData");
             file_put_contents("$basePath/$baseName/quote.pdf", "%PDF-1.4 fake");
