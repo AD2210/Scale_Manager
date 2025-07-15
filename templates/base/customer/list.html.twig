@@ -17,21 +17,34 @@
 {% endblock %}
 
 {% block table_add_form %}
-    <tr id="new-item-row">
-        {% include 'components/editable/_input_field.html.twig' with {
-            id: 'new-name',
-            placeholder: 'Nom'
-        } %}
-
-        {% include 'components/editable/_checkbox_field.html.twig' with {
-            id: 'new-is-active'
-        } %}
-
-        {% include 'components/buttons/_add_button.html.twig' with {
-            id: 'add-button'
+    <tr class="bg-light border rounded shadow-sm align-middle">
+        {% include 'components/_form_add_entity.html.twig' with {
+            route: 'app_customer_create',
+            form_class: 'mt-2',
+            fields: [
+                { name: 'name', type: 'text', placeholder: 'Nom du client', required: true },
+                { name: 'isActive', type: 'checkbox', value: false },
+            ]
         } %}
     </tr>
 {% endblock %}
+
+{# {% block table_add_form %} #}
+{#    <tr id="new-item-row"> #}
+{#        {% include 'components/editable/_input_field.html.twig' with { #}
+{#            id: 'new-name', #}
+{#            placeholder: 'Nom' #}
+{#        } %} #}
+
+{#        {% include 'components/editable/_checkbox_field.html.twig' with { #}
+{#            id: 'new-is-active' #}
+{#        } %} #}
+
+{#        {% include 'components/buttons/_add_button.html.twig' with { #}
+{#            id: 'add-button' #}
+{#        } %} #}
+{#    </tr> #}
+{# {% endblock %} #}
 
 {% block table_rows %}
     {% for customer in customers %}
