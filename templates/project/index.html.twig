@@ -1,0 +1,104 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes projets{% endblock %}
+
+{% block page_header %}
+    <h1 class="h4 m-0">Mes projets</h1>
+    <div class="d-flex align-items-center gap-3">
+        <div class="position-relative d-flex gap-1">
+            <input type="text" class="form-control form-control-sm ps-4" placeholder="Rechercher un projet…"
+                   id="projectSearch" style="max-width: 250px;">
+            <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-2 text-muted"></i>
+        </div>
+        <div class="form-check form-switch m-0 d-flex align-items-center">
+            <input class="form-check-input" type="checkbox" value="" id="archivedToggle">
+            <label class="form-check-label ms-2 small text-nowrap text-center" for="archivedToggle">
+                Afficher les archivés
+            </label>
+        </div>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <div class="d-flex flex-wrap gap-3 justify-content-start" id="projectList">
+
+        {# Carte "ajouter un projet" @todo ajouter le lien vers app_project_new #}
+        <div class="card project project-add">
+            <a href="{{ path('app_project_new') }}" class="text-decoration-none text-dark stretched-link"></a>
+            <div class="card-body d-flex flex-column justify-content-center align-items-center h-100">
+                <i class="fa-solid fa-plus fa-2x mb-2"></i>
+                <p class="mb-0">Nouveau projet</p>
+            </div>
+        </div>
+
+        {# Cartes projets dynamiques #}
+        {% for project in projects %}
+            {% set isLate = project.deadline < 'now'|date %}
+            <div class="card project project-card position-relative"
+                 data-archived="{{ project.isArchived ? 'true' : 'false' }}"
+                 data-id="{{ project.id }}">
+                {% set label = project.isArchived ? 'Archivé' : 'En cours' %}
+                {% set badgeClass = project.isArchived ? 'bg-secondary' : 'bg-success' %}
+
+                <a href="{{ path('app_project_show', {'id': project.id}) }}"
+                   class="text-decoration-none text-dark stretched-link"></a>
+
+                <span class="badge {{ badgeClass }} position-absolute bottom-0 start-0 m-2 archive-toggle p-2"
+                      data-id="{{ project.id }}"
+                      style="z-index: 10; cursor: pointer;">
+            {{ label }}
+        </span>
+
+                <div class="card-body d-flex flex-column justify-content-between h-100">
+                    <div>
+                        <h5 class="card-title mb-1">{{ project.title }}</h5>
+                        <div class="small text-muted" data-customer="{{ project.customer.name }}">
+                            Client : {{ project.customer.name }}
+                        </div>
+                        <div class="small text-muted" data-manager="{{ project.manager.name }}">
+                            Responsable : {{ project.manager.name }}
+                        </div>
+                    </div>
+
+                    <div class="mt-2 d-flex flex-column">
+                        <div class="preview-wrapper flex-grow-1 mb-2">
+                            {% if project.quoteLink is not null %}
+                                {% set quoteExt = project.quoteLink|split('.')|last|lower %}
+
+                                {% if quoteExt in ['jpg', 'jpeg', 'png', 'gif'] %}
+                                    <img src="{{ path('project_file_download', { id: project.id, type: 'quote' }) }}"
+                                         alt="Devis"
+                                         class="preview-img rounded border"/>
+
+                                {% elseif quoteExt == 'pdf' %}
+                                    <embed src="{{ path('project_file_download', { id: project.id, type: 'quote' }) }}"
+                                           type="application/pdf"
+                                           class="preview-pdf rounded border"/>
+
+                                    <a href="{{ path('project_file_download', { id: project.id, type: 'quote' }) }}"
+                                       target="_blank"
+                                       class="btn btn-sm btn-light preview-eye"
+                                       title="Voir le devis">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                {% else %}
+                                    <div class="text-muted small">Fichier non pris en charge</div>
+                                {% endif %}
+                            {% else %}
+                                <div class="text-muted small">Aucun devis</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-end small text-muted">
+                            {% if project.deadline %}
+                                Deadline : {{ project.deadline|date('d/m/Y') }}
+                            {% else %}
+                                Deadline non définie
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

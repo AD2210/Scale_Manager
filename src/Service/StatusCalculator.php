@@ -1,0 +1,141 @@
+<?php
+
+namespace App\Service;
+
+use App\Entity\Enum\Print3DStatusEnum;
+use App\Entity\Project;
+use App\Repository\Operation\CustomerDataOperationRepository;
+use App\Repository\CustomerDataRepository;
+use App\Repository\ModelRepository;
+use App\Repository\Process\FinishProcessRepository;
+use App\Repository\Process\TreatmentProcessRepository;
+
+readonly class StatusCalculator
+{
+    public function __construct(
+        private CustomerDataRepository          $customerDataRepository,
+        private CustomerDataOperationRepository $customerDataOperationRepository,
+        private ModelRepository                 $modelRepository,
+        //private TreatmentProcessRepository     $treatmentRepository,
+        //private FinishProcessRepository         $finishRepository,
+    )
+    {
+    }
+
+    public function calculateCustomerDataProgress(Project $project): array
+    {
+        $cds = $this->customerDataRepository->findBy(['project' => $project]);
+        $total = 0;
+        $done = 0;
+        $nbSoftware = 0;
+
+        foreach ($cds as $cd) {
+            $softwareCount = $this->customerDataOperationRepository->count(['customerData' => $cd]);
+            $nbSoftware = max($nbSoftware, $softwareCount);
+            $total += $softwareCount;
+            $done += $this->customerDataOperationRepository->count(['customerData' => $cd, 'isDone' => true]);
+        }
+
+        if (empty($cds)) {
+            return ['error' => 'Aucune données dans le dossier'];
+        }
+
+        if ($nbSoftware === 0) {
+            return ['error' => 'Aucun logiciel n\'est configuré pour les fichiers client.'];
+        }
+
+        $total /= $nbSoftware;
+        $done /= $nbSoftware;
+        $progress = $total > 0 ? round(($done / $total) * 100, 2) : 0;
+
+        return compact('done', 'total', 'progress');
+    }
+
+    public function calculateModelProgress(Project $project): array
+    {
+        $models = $this->modelRepository->findBy(['project' => $project]);
+        if (empty($models)) return ['error' => 'Aucun modèle dans le dossier'];
+
+        $total = count($models);
+        $done = count(array_filter($models, fn($m) => $m->isReadyToPrint()));
+        $progress = round(($done / $total) * 100, 2);
+
+        return compact('done', 'total', 'progress');
+    }
+
+    public function calculatePrint3DProgress(Project $project): array
+    {
+        return $this->calculateFromModelQuantity($project, fn($m) => $m->getPrint3dStatus() === Print3DStatusEnum::DONE, 'Aucun modèle disponible pour l\'impression 3D.');
+    }
+
+    public function calculateAssemblyProgress(Project $project): array
+    {
+        return $this->calculateFromModelQuantity($project, fn($m) => $m->isAssemblyDone(), 'Aucun modèle à assembler');
+    }
+
+    public function calculateQualityProgress(Project $project): array
+    {
+        return $this->calculateFromModelQuantity($project, fn($m) => $m->isQualityOk(), 'Aucun modèle à contrôler');
+    }
+
+    public function calculateTreatmentProgress(Project $project): array
+    {
+        return $this->calculateOperationProgress($project, 'getTreatmentOperation', 'Aucunes opération de post-traitement trouvée');
+    }
+
+    public function calculateFinishProgress(Project $project): array
+    {
+        return $this->calculateOperationProgress($project, 'getFinishOperation', 'Aucune opération de finition trouvée');
+    }
+
+    private function calculateFromModelQuantity(Project $project, callable $condition, string $emptyMsg): array
+    {
+        $models = $this->modelRepository->findBy(['project' => $project]);
+        if (empty($models)) return ['error' => $emptyMsg];
+
+        $total = 0;
+        $done = 0;
+
+        foreach ($models as $model) {
+            $qty = $model->getQuantity() ?? 0;
+            $total += $qty;
+            if ($condition($model)) {
+                $done += $qty;
+            }
+        }
+
+        if ($total === 0) return ['error' => 'Les quantités sont nulles ou absentes'];
+
+        $progress = round(($done / $total) * 100, 2);
+        return compact('done', 'total', 'progress');
+    }
+
+    private function calculateOperationProgress(Project $project, string $getter, string $emptyMsg): array
+    {
+        $models = $this->modelRepository->findBy(['project' => $project]);
+        $total = 0;
+        $done = 0;
+        $operations = 0;
+
+        foreach ($models as $model) {
+            $operationsByModel = $model->$getter();
+            $count = count($operationsByModel);
+            $operations += $count;
+            $qty = $model->getQuantity() ?? 0;
+            $total += $qty * $count;
+
+            foreach ($operationsByModel as $operation) {
+                if ($operation->isDone()) {
+                    $done += $qty;
+                }
+            }
+        }
+
+        if ($operations === 0) return ['error' => $emptyMsg];
+        if ($total === 0) return ['error' => 'Les quantités des modèles sont nulles ou absentes'];
+
+        $progress = round(($done / $total) * 100, 2);
+        return compact('done', 'total', 'progress');
+    }
+}
+

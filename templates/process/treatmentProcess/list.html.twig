@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des traitements{% endblock %}
+
+{% block page_header %}
+    <h1 class="h4 mb-0">Liste des traitements</h1>
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-1 ms-1">
+        <table class="table table-hover align-middle" id="treatment-table">
+            <thead class="table-light">
+            <tr>
+                <th class="col-8">Nom</th>
+                <th class="col-2 text-center">Actif</th>
+                <th class="col-2 text-center">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr id="new-item-row">
+                {% include 'components/editable/_input_field.html.twig' with {
+                    id: 'new-name',
+                    placeholder: 'Nom du traitement'
+                } %}
+
+                {% include 'components/editable/_checkbox_field.html.twig' with {
+                    id: 'new-is-active'
+                } %}
+
+                {% include 'components/buttons/_add_button.html.twig' with {
+                    id: 'add-button',
+                    title: 'Ajouter'
+                } %}
+            </tr>
+
+            {% for item in items %}
+                <tr data-id="{{ item.id }}">
+                    {% include 'components/editable/_text_cell.html.twig' with {
+                        field: 'name',
+                        value: item.name
+                    } %}
+
+                    {% include 'components/editable/_checkbox_cell.html.twig' with {
+                        field: 'isActive',
+                        value: item.isActive
+                    } %}
+
+                    {% include 'components/buttons/_delete_button.html.twig' %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

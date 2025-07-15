@@ -1,0 +1,55 @@
+{% set entityClass = 'App\\Entity\\Base\\Software' %}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des logiciels{% endblock %}
+
+{% block page_header %}
+    <h1 class="h4 mb-0">Liste des logiciels</h1>
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-1 ms-1">
+        <table class="table table-hover align-middle" id="softwares-table">
+            <thead class="table-light">
+            <tr>
+                <th class="col-6">Nom</th>
+                <th class="col-2 text-center">Actif</th>
+                <th class="col-2 text-center">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr id="new-item-row">
+                {% include 'components/editable/_input_field.html.twig' with {
+                    id: 'new-name',
+                    placeholder: 'Nom'
+                } %}
+
+                {% include 'components/editable/_checkbox_field.html.twig' with {
+                    id: 'new-is-active'
+                } %}
+
+                {% include 'components/buttons/_add_button.html.twig' with {
+                    id: 'add-button',
+                    title: 'Ajouter un logiciel'
+                } %}
+            </tr>
+            {% for software in softwares %}
+                <tr data-id="{{ software.id }}">
+                    {% include 'components/editable/_text_cell.html.twig' with {
+                        field: 'name',
+                        value: software.name
+                    } %}
+
+                    {% include 'components/editable/_checkbox_cell.html.twig' with {
+                        field: 'isActive',
+                        value: software.isActive
+                    } %}
+
+                    {% include 'components/buttons/_delete_button.html.twig' %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

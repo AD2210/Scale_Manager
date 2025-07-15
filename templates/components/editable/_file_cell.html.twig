@@ -1,0 +1,14 @@
+<td class="editable" data-field="{{ field }}">
+    <div class="d-flex align-items-center gap-2">
+        <input type="text" class="form-control form-control-sm" value="{{ value }}" readonly>
+        {% if view_route %}
+            <a class="btn btn-sm btn-outline-primary" href="{{ path(view_route, { id: id }) }}" target="_blank" title="Voir">
+                <i class="fa-solid fa-eye"></i>
+            </a>
+        {% endif %}
+        <label class="btn btn-sm btn-outline-secondary mb-0">
+            <i class="fa-solid fa-file-arrow-up"></i>
+            <input type="file" class="d-none file-upload-trigger">
+        </label>
+    </div>
+</td>

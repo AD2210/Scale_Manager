@@ -1,0 +1,87 @@
+{% set entityClass = 'App\\Entity\\Process\\AssemblyProcess' %}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des assemblages{% endblock %}
+
+{% block page_header %}
+    <h1 class="h4 mb-0">Liste des assemblages</h1>
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-1 ms-1">
+        <table class="table table-hover align-middle" id="assembly-process-table">
+            <thead class="table-light">
+            <tr>
+                <th class="col-2">Nom</th>
+                <th class="col-1 text-center">Actif</th>
+                <th class="col-1 text-center">Spécifique</th>
+                <th class="col-3">Commentaire</th>
+                <th class="col-4">Lien méthode</th>
+                <th class="col-1 text-center">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr id="new-item-row">
+                {% include 'components/editable/_input_field.html.twig' with {
+                    id: 'new-name',
+                    placeholder: 'Nom'
+                } %}
+
+                {% include 'components/editable/_checkbox_field.html.twig' with {
+                    id: 'new-is-active'
+                } %}
+
+                {% include 'components/editable/_checkbox_field.html.twig' with {
+                    id: 'new-is-specific'
+                } %}
+
+                {% include 'components/editable/_textarea_field.html.twig' with {
+                    id: 'new-comment'
+                } %}
+
+                {% include 'components/editable/_file_field.html.twig' with {
+                    id: 'new-method-link'
+                } %}
+
+                {% include 'components/buttons/_add_button.html.twig' with {
+                    id: 'add-button',
+                    title: 'Ajouter un assemblage'
+                } %}
+            </tr>
+            {% for item in items %}
+                <tr data-id="{{ item.id }}">
+                    {% include 'components/editable/_text_cell.html.twig' with {
+                        field: 'name',
+                        value: item.name
+                    } %}
+
+                    {% include 'components/editable/_checkbox_cell.html.twig' with {
+                        field: 'isActive',
+                        value: item.isActive
+                    } %}
+
+                    {% include 'components/editable/_checkbox_cell.html.twig' with {
+                        field: 'isSpecific',
+                        value: item.isSpecific
+                    } %}
+
+                    {% include 'components/editable/_textarea_cell.html.twig' with {
+                        field: 'comment',
+                        value: item.comment
+                    } %}
+
+                    {% include 'components/editable/_file_cell.html.twig' with {
+                        field: 'methodLink',
+                        value: item.methodLink,
+                        view_route: 'app_assembly_process_view',
+                        id: item.id
+                    } %}
+
+                    {% include 'components/buttons/_delete_button.html.twig' %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
