@@ -109,6 +109,8 @@ final class ProjectController extends AbstractController
         $assemblyDataset = $statusCalculator->calculateAssemblyProgress($project);
         $qualityDataset = $statusCalculator->calculateQualityProgress($project);
 
+        //dd($modelDataset,$customerDataDataset, $print3dDataset, $postTreatmentDataset, $finishDataSet, $assemblyDataset, $qualityDataset);
+
         return $this->render('project/show.html.twig', [
             'project' => $project,
             'modelDataset' => $modelDataset,

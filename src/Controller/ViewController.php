@@ -21,6 +21,7 @@ class ViewController extends AbstractController
     #[Route('/view/assembly-process/{id}', name: 'app_assembly_process_view')]
     public function viewAssembly(AssemblyProcess $assembly): Response
     {
+        //dd($this->serveFile($assembly->getMethodLink()));
         return $this->serveFile($assembly->getMethodLink());
     }
 

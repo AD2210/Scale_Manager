@@ -1,6 +1,6 @@
 {% set entityClass = 'App\\Entity\\Base\\Software' %}
 
-{% extends 'base.html.twig' %}
+{% extends 'components/_table_wrapper.html.twig' %}
 
 {% block title %}Liste des logiciels{% endblock %}
 
@@ -8,48 +8,42 @@
     <h1 class="h4 mb-0">Liste des logiciels</h1>
 {% endblock %}
 
-{% block body %}
-    <div class="container mt-1 ms-1">
-        <table class="table table-hover align-middle" id="softwares-table">
-            <thead class="table-light">
-            <tr>
-                <th class="col-6">Nom</th>
-                <th class="col-2 text-center">Actif</th>
-                <th class="col-2 text-center">Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr id="new-item-row">
-                {% include 'components/editable/_input_field.html.twig' with {
-                    id: 'new-name',
-                    placeholder: 'Nom'
-                } %}
+{% block table_head %}
+    <tr>
+        <th class="col-6">Nom</th>
+        <th class="col-2 text-center">Actif</th>
+        <th class="col-2 text-center">Actions</th>
+    </tr>
+{% endblock %}
 
-                {% include 'components/editable/_checkbox_field.html.twig' with {
-                    id: 'new-is-active'
-                } %}
+{% block table_add_form %}
+    <tr class="bg-light border rounded shadow-sm align-middle">
+        {% include 'components/_form_add_entity.html.twig' with {
+            route: 'app_base_generic_create',
+            route_parameters: { type: 'software' },
+            form_class: 'mt-2',
+            fields: [
+                { name: 'name', type: 'text', placeholder: 'Nom du logiciel', required: true },
+                { name: 'isActive', type: 'checkbox', value: false },
+            ]
+        } %}
+    </tr>
+{% endblock %}
 
-                {% include 'components/buttons/_add_button.html.twig' with {
-                    id: 'add-button',
-                    title: 'Ajouter un logiciel'
-                } %}
-            </tr>
-            {% for software in softwares %}
-                <tr data-id="{{ software.id }}">
-                    {% include 'components/editable/_text_cell.html.twig' with {
-                        field: 'name',
-                        value: software.name
-                    } %}
+{% block table_rows %}
+    {% for software in softwares %}
+        <tr data-id="{{ software.id }}">
+            {% include 'components/editable/_text_cell.html.twig' with {
+                field: 'name',
+                value: software.name
+            } %}
 
-                    {% include 'components/editable/_checkbox_cell.html.twig' with {
-                        field: 'isActive',
-                        value: software.isActive
-                    } %}
+            {% include 'components/editable/_checkbox_cell.html.twig' with {
+                field: 'isActive',
+                value: software.isActive
+            } %}
 
-                    {% include 'components/buttons/_delete_button.html.twig' %}
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+            {% include 'components/buttons/_delete_button.html.twig' %}
+        </tr>
+    {% endfor %}
 {% endblock %}

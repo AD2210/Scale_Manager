@@ -61,8 +61,11 @@ class Print3DMaterial
         return $this->isActive;
     }
 
-    public function setIsActive(bool $isActive): static
+    public function setIsActive(?bool $isActive): static
     {
+        if ($isActive === null) {
+            $isActive = false;
+        }
         $this->isActive = $isActive;
 
         return $this;

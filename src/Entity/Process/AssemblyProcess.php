@@ -51,8 +51,11 @@ class AssemblyProcess
         return $this->isActive;
     }
 
-    public function setIsActive(bool $isActive): static
+    public function setIsActive(?bool $isActive): static
     {
+        if ($isActive === null) {
+            $isActive = false;
+        }
         $this->isActive = $isActive;
 
         return $this;
@@ -63,8 +66,11 @@ class AssemblyProcess
         return $this->isSpecific;
     }
 
-    public function setIsSpecific(bool $isSpecific): static
+    public function setIsSpecific(?bool $isSpecific): static
     {
+        if ($isSpecific === null) {
+            $isSpecific = false;
+        }
         $this->isSpecific = $isSpecific;
 
         return $this;
