@@ -17,33 +17,17 @@
 {% endblock %}
 
 {% block table_add_form %}
-    <tr id="new-item-row">
-        {% include 'components/editable/_input_field.html.twig' with {
-            id: 'new-name',
-            placeholder: 'Nom'
-        } %}
-
-        {% include 'components/editable/_checkbox_field.html.twig' with {
-            id: 'new-is-active'
-        } %}
-
-        {% include 'components/editable/_dropdown_field.html.twig' with {
-            id: 'new-treatment-process',
-            label: 'Traitements',
-            name: 'treatment-checkbox',
-            items: treatments
-        } %}
-
-        {% include 'components/editable/_dropdown_field.html.twig' with {
-            id: 'new-finish-process',
-            label: 'Finitions',
-            name: 'finish-checkbox',
-            items: finishes
-        } %}
-
-        {% include 'components/buttons/_add_button.html.twig' with {
-            id: 'add-button',
-            title: 'Ajouter'
+    <tr class="bg-light border rounded shadow-sm align-middle">
+        {% include 'components/_form_add_entity.html.twig' with {
+            route: 'app_base_generic_create',
+            route_parameters: { type: 'assembly_process' },
+            form_class: 'mt-2',
+            fields: [
+                { name: 'name', type: 'text', placeholder: 'Nom du process', required: true },
+                { name: 'isActive', type: 'checkbox', value: false },
+                { name: 'treatmentProcess', type: 'select', label: 'Traitements', items: treatments },
+                { name: 'finishProcess', type: 'select', label: 'Finitions', items: finishes },
+            ]
         } %}
     </tr>
 {% endblock %}
