@@ -32,24 +32,29 @@
     </tr>
 {% endblock %}
 {% block table_rows %}
-    {% for profil in profils %}
-        <tr data-id="{{ profil.id }}">
+    {% for item in profils %}
+        <tr data-id="{{ item.id }}">
             {% include 'components/editable/_text_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'slicer_profil',
                 field: 'name',
-                value: profil.name
+                value: item.name
             } %}
 
             {% include 'components/editable/_file_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'slicer_profil',
                 field: 'fileLink',
-                value: profil.fileLink,
-                view_route: 'app_slicer_profil_view',
-                id: profil.id
+                value: item.fileLink,
+                view_route: 'app_slicer_profil_view'
             } %}
 
 
             {% include 'components/editable/_checkbox_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'slicer_profil',
                 field: 'isActive',
-                value: profil.isActive
+                value: item.isActive
             } %}
 
             {% include 'components/buttons/_delete_button.html.twig' %}

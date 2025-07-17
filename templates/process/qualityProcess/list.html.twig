@@ -1,18 +1,18 @@
 {% extends 'components/_table_wrapper.html.twig' %}
 
-{% block title %}Liste des processus qualité{% endblock %}
+{% block title %}Liste des contrôles qualité{% endblock %}
 
 {% block page_header %}
-    <h1 class="h4 mb-0">Liste des processus qualité</h1>
+    <h1 class="h4 mb-0">Liste des contrôles qualité</h1>
 {% endblock %}
 
 {% block table_head %}
     <tr>
-        <th class="col-3">Nom</th>
+        <th class="col-2">Nom</th>
         <th class="col-1 text-center">Actif</th>
-        <th class="col-3">Commentaire</th>
-        <th class="col-3">Lien méthode</th>
-        <th class="col-2 text-center">Actions</th>
+        <th class="col-4">Commentaire</th>
+        <th class="col-4">Lien méthode</th>
+        <th class="col-1 text-center">Actions</th>
     </tr>
 {% endblock %}
 
@@ -23,10 +23,10 @@
             route_parameters: { type: 'quality_process' },
             form_class: 'mt-2',
             fields: [
-                { name: 'name', type: 'text', placeholder: 'Nom du process', required: true },
+                { name: 'name', type: 'text', placeholder: 'Nom du contrôle', required: true },
                 { name: 'isActive', type: 'checkbox', value: false },
-                { name: 'comment', type: 'textarea' },
-                { name: 'methodLink', type: 'file' },
+                { name: 'comment', type: 'textarea', placeholder: 'Commentaire' },
+                { name: 'methodLink', type: 'file' }
             ]
         } %}
     </tr>
@@ -36,25 +36,32 @@
     {% for item in items %}
         <tr data-id="{{ item.id }}">
             {% include 'components/editable/_text_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'quality_process',
                 field: 'name',
                 value: item.name
             } %}
 
             {% include 'components/editable/_checkbox_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'quality_process',
                 field: 'isActive',
                 value: item.isActive
             } %}
 
             {% include 'components/editable/_textarea_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'quality_process',
                 field: 'comment',
                 value: item.comment
             } %}
 
             {% include 'components/editable/_file_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'quality_process',
                 field: 'methodLink',
                 value: item.methodLink,
-                view_route: 'app_quality_process_view',
-                id: item.id
+                view_route: 'app_quality_process_view'
             } %}
 
             {% include 'components/buttons/_delete_button.html.twig' %}

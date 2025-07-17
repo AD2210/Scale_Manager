@@ -1,5 +1,3 @@
-{% set entityClass = 'App\\Entity\\Base\\Software' %}
-
 {% extends 'components/_table_wrapper.html.twig' %}
 
 {% block title %}Liste des logiciels{% endblock %}
@@ -31,16 +29,20 @@
 {% endblock %}
 
 {% block table_rows %}
-    {% for software in softwares %}
-        <tr data-id="{{ software.id }}">
+    {% for item in softwares %}
+        <tr data-id="{{ item.id }}">
             {% include 'components/editable/_text_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'software',
                 field: 'name',
-                value: software.name
+                value: item.name
             } %}
 
             {% include 'components/editable/_checkbox_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'software',
                 field: 'isActive',
-                value: software.isActive
+                value: item.isActive
             } %}
 
             {% include 'components/buttons/_delete_button.html.twig' %}

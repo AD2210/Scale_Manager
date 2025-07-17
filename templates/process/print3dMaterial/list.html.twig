@@ -1,5 +1,3 @@
-{% set entityClass = 'App\\Entity\\Process\\Print3DMaterial' %}
-
 {% extends 'components/_table_wrapper.html.twig' %}
 
 {% block title %}Liste Print 3D{% endblock %}
@@ -19,7 +17,6 @@
 {% endblock %}
 
 {% block table_add_form %}
-    <tr id="new-item-row">
     <tr class="bg-light border rounded shadow-sm align-middle">
         {% include 'components/_form_add_entity.html.twig' with {
             route: 'app_base_generic_create',
@@ -32,22 +29,29 @@
                 { name: 'finishProcess', type: 'select', label: 'Finitions', items: finishes },
             ]
         } %}
-    {% endblock %}
+    </tr>
+{% endblock %}
 
 {% block table_rows %}
     {% for item in items %}
         <tr data-id="{{ item.id }}">
             {% include 'components/editable/_text_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'print3d_material',
                 field: 'name',
                 value: item.name
             } %}
 
             {% include 'components/editable/_checkbox_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'print3d_material',
                 field: 'isActive',
                 value: item.isActive
             } %}
 
             {% include 'components/editable/_dropdown_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'print3d_material',
                 field: 'treatmentProcess',
                 name: 'treatment-checkbox',
                 value: item.treatmentProcess,
@@ -55,6 +59,8 @@
             } %}
 
             {% include 'components/editable/_dropdown_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'print3d_material',
                 field: 'finishProcess',
                 name: 'finish-checkbox',
                 value: item.finishProcess,

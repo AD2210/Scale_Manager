@@ -21,8 +21,8 @@
             route_parameters: { type: 'finish_process' },
             form_class: 'mt-2',
             fields: [
-                { name: 'name', type: 'text', placeholder: 'Nom du process', required: true },
-                { name: 'isActive', type: 'checkbox', value: false },
+                { name: 'name', type: 'text', placeholder: 'Nom de la finition', required: true },
+                { name: 'isActive', type: 'checkbox', value: false }
             ]
         } %}
     </tr>
@@ -32,11 +32,15 @@
     {% for item in items %}
         <tr data-id="{{ item.id }}">
             {% include 'components/editable/_text_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'finish_process',
                 field: 'name',
                 value: item.name
             } %}
 
             {% include 'components/editable/_checkbox_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'finish_process',
                 field: 'isActive',
                 value: item.isActive
             } %}

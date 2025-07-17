@@ -1,11 +1,9 @@
-{% set entityClass = 'App\\Entity\\Base\\Manager' %}
-
 {% extends 'components/_table_wrapper.html.twig' %}
 
-{% block title %}Liste des managers{% endblock %}
+{% block title %}Liste des responsables{% endblock %}
 
 {% block page_header %}
-    <h1 class="h4 mb-0">Liste des Responsables</h1>
+    <h1 class="h4 mb-0">Liste des responsables</h1>
 {% endblock %}
 
 {% block table_head %}
@@ -15,6 +13,7 @@
         <th class="col-2 text-center">Actions</th>
     </tr>
 {% endblock %}
+
 {% block table_add_form %}
     <tr class="bg-light border rounded shadow-sm align-middle">
         {% include 'components/_form_add_entity.html.twig' with {
@@ -23,22 +22,27 @@
             form_class: 'mt-2',
             fields: [
                 { name: 'name', type: 'text', placeholder: 'Nom du responsable', required: true },
-                { name: 'isActive', type: 'checkbox', value: false },
+                { name: 'isActive', type: 'checkbox', value: false }
             ]
         } %}
     </tr>
 {% endblock %}
+
 {% block table_rows %}
-    {% for manager in managers %}
-        <tr data-id="{{ manager.id }}">
+    {% for item in managers %}
+        <tr data-id="{{ item.id }}">
             {% include 'components/editable/_text_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'manager',
                 field: 'name',
-                value: manager.name
+                value: item.name
             } %}
 
             {% include 'components/editable/_checkbox_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'manager',
                 field: 'isActive',
-                value: manager.isActive
+                value: item.isActive
             } %}
 
             {% include 'components/buttons/_delete_button.html.twig' %}

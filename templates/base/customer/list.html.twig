@@ -1,5 +1,3 @@
-{% set entityClass = 'App\\Entity\\Base\\Customer' %}
-
 {% extends 'components/_table_wrapper.html.twig' %}
 
 {% block title %}Liste des clients{% endblock %}
@@ -31,16 +29,20 @@
 {% endblock %}
 
 {% block table_rows %}
-    {% for customer in customers %}
-        <tr data-id="{{ customer.id }}">
+    {% for item in customers %}
+        <tr data-id="{{ item.id }}">
             {% include 'components/editable/_text_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'customer',
                 field: 'name',
-                value: customer.name
+                value: item.name
             } %}
 
             {% include 'components/editable/_checkbox_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'customer',
                 field: 'isActive',
-                value: customer.isActive
+                value: item.isActive
             } %}
 
             {% include 'components/buttons/_delete_button.html.twig' %}

@@ -36,16 +36,22 @@
     {% for item in items %}
         <tr data-id="{{ item.id }}">
             {% include 'components/editable/_text_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'print3d_process',
                 field: 'name',
                 value: item.name
             } %}
 
             {% include 'components/editable/_checkbox_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'print3d_process',
                 field: 'isActive',
                 value: item.isActive
             } %}
 
             {% include 'components/editable/_dropdown_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'print3d_process',
                 field: 'treatmentProcess',
                 name: 'treatment-checkbox',
                 value: item.treatmentProcess,
@@ -53,6 +59,8 @@
             } %}
 
             {% include 'components/editable/_dropdown_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'print3d_process',
                 field: 'finishProcess',
                 name: 'finish-checkbox',
                 value: item.finishProcess,

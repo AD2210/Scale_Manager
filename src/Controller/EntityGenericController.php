@@ -5,6 +5,7 @@ namespace App\Controller;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -156,5 +157,58 @@ class EntityGenericController extends AbstractController
 
         $this->addFlash('success', ucfirst($type) . ' ajouté avec succès.');
         return $this->redirectToRoute($config['redirect_route']);
+    }
+
+    #[Route('/update/{type}/{id}', name: 'app_base_generic_update', methods: ['PATCH'])]
+    public function update(Request $request, string $type, int $id, EntityManagerInterface $em): JsonResponse
+    {
+        if (!isset(self::ALLOWED_ENTITIES[$type])) {
+            return new JsonResponse(['error' => 'Type non autorisé'], 404);
+        }
+
+        $config = self::ALLOWED_ENTITIES[$type];
+        $entity = $em->getRepository($config['class'])->find($id);
+        if (!$entity) {
+            return new JsonResponse(['error' => 'Entité introuvable'], 404);
+        }
+
+        // lecture des données : JSON ou formulaire
+        $data = json_decode($request->getContent(), true) ?? $request->request->all();
+
+        foreach ($data as $field => $value) {
+            if (in_array($field, $config['fields'] ?? [])) {
+                $setter = 'set' . ucfirst($field);
+                if (method_exists($entity, $setter)) {
+                    $entity->$setter(is_string($value) ? trim($value) : $value);
+                }
+            }
+            if (in_array($field, $config['bool_fields'] ?? [])) {
+                $setter = 'set' . ucfirst($field);
+                if (method_exists($entity, $setter)) {
+                    $entity->$setter((bool)$value);
+                }
+            }
+            if (array_key_exists($field, $config['manyToMany_fields'] ?? [])) {
+                $relation = $config['manyToMany_fields'][$field];
+                $repo = $em->getRepository($relation['entity']);
+                $method = $relation['method'];
+
+                $current = method_exists($entity, 'get' . ucfirst($field)) ? $entity->{'get' . ucfirst($field)}() : null;
+                if ($current && method_exists($current, 'clear')) {
+                    $current->clear();
+                }
+
+                foreach ((array) $value as $relId) {
+                    $related = $repo->find($relId);
+                    if ($related) {
+                        $entity->{$method}($related);
+                    }
+                }
+            }
+        }
+
+        $em->flush();
+
+        return new JsonResponse(['success' => true]);
     }
 }

@@ -1,5 +1,3 @@
-{% set entityClass = 'App\\Entity\\Process\\AssemblyProcess' %}
-
 {% extends 'components/_table_wrapper.html.twig' %}
 
 {% block title %}Liste des assemblages{% endblock %}
@@ -29,8 +27,8 @@
                 { name: 'name', type: 'text', placeholder: 'Nom du process', required: true },
                 { name: 'isActive', type: 'checkbox', value: false },
                 { name: 'isSpecific', type: 'checkbox', value: false },
-                { name: 'comment', type: 'textarea'},
-                { name: 'methodLink', type: 'file' },
+                { name: 'comment', type: 'textarea', placeholder: 'Commentaire' },
+                { name: 'methodLink', type: 'file' }
             ]
         } %}
     </tr>
@@ -40,30 +38,39 @@
     {% for item in items %}
         <tr data-id="{{ item.id }}">
             {% include 'components/editable/_text_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'assembly_process',
                 field: 'name',
                 value: item.name
             } %}
 
             {% include 'components/editable/_checkbox_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'assembly_process',
                 field: 'isActive',
                 value: item.isActive
             } %}
 
             {% include 'components/editable/_checkbox_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'assembly_process',
                 field: 'isSpecific',
                 value: item.isSpecific
             } %}
 
             {% include 'components/editable/_textarea_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'assembly_process',
                 field: 'comment',
                 value: item.comment
             } %}
 
             {% include 'components/editable/_file_cell.html.twig' with {
+                entityId: item.id,
+                entityType: 'assembly_process',
                 field: 'methodLink',
                 value: item.methodLink,
-                view_route: 'app_assembly_process_view',
-                id: item.id
+                view_route: 'app_assembly_process_view'
             } %}
 
             {% include 'components/buttons/_delete_button.html.twig' %}

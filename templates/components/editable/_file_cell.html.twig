@@ -2,7 +2,7 @@
     <div class="d-flex align-items-center gap-2">
         <input type="text" class="form-control form-control-sm" value="{{ value }}" readonly>
         {% if view_route %}
-            <a class="btn btn-sm btn-outline-primary" href="{{ path(view_route, { id: id }) }}" target="_blank" title="Voir">
+            <a class="btn btn-sm btn-outline-primary" href="{{ path(view_route, { id: entityId }) }}" target="_blank" title="Voir">
                 <i class="fa-solid fa-eye"></i>
             </a>
         {% endif %}
