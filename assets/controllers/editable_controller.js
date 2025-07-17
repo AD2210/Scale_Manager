@@ -7,51 +7,63 @@ export default class extends Controller {
         field: String
     }
 
-    connect() {
-        // console.log(`Stimulus editable ready for ${this.typeValue}:${this.fieldValue}`)
-    }
-
     update(event) {
         const target = event.target
-        let value = null
+        let payload, options
 
-        if (target.type === 'checkbox') {
-            if (target.closest('.dropdown-menu')) {
-                // Multi-select case (checkbox in dropdown)
-                const checkboxes = target
-                    .closest('td')
-                    .querySelectorAll('input[type="checkbox"]:checked')
-                value = Array.from(checkboxes).map(cb => cb.value)
-            } else {
-                // Single boolean checkbox
-                value = target.checked
+        if (target.type === 'file') {
+            const formData = new FormData()
+            const file = target.files[0]
+            if (!file) return
+
+            formData.append(this.fieldValue, file)
+            options = {
+                method: 'POST', // Changé de PATCH à POST
+                headers: {
+                    'X-HTTP-Method-Override': 'PATCH',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
             }
         } else {
-            value = target.value
+            let value = null
+
+            if (target.type === 'checkbox') {
+                if (target.closest('.dropdown-menu')) {
+                    const checkboxes = target
+                        .closest('td')
+                        .querySelectorAll('input[type="checkbox"]:checked')
+                    value = Array.from(checkboxes).map(cb => cb.value)
+                } else {
+                    value = target.checked
+                }
+            } else {
+                value = target.value
+            }
+
+            options = {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ [this.fieldValue]: value })
+            }
         }
 
-        const payload = {}
-        payload[this.fieldValue] = value
-
-        fetch(`/generic/update/${this.typeValue}/${this.idValue}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: JSON.stringify(payload),
-        })
-            .then((response) => {
-                if (!response.ok) throw new Error('Échec de la mise à jour.')
+        fetch(`/generic/update/${this.typeValue}/${this.idValue}`, options)
+            .then(response => {
+                if (!response.ok) throw new Error('Échec de la mise à jour')
                 return response.json()
             })
-            .then((data) => {
-                // Optionnel : retour visuel ou console
-                // console.log('Mise à jour réussie', data)
+            .then(data => {
+                if (data.success) {
+                    this.dispatch('success', { detail: data })
+                }
             })
-            .catch((err) => {
-                console.error(err)
-                alert('Erreur lors de la mise à jour')
+            .catch(error => {
+                console.error('Erreur lors de la mise à jour:', error)
+                this.dispatch('error', { detail: { message: error.message } })
             })
     }
 }

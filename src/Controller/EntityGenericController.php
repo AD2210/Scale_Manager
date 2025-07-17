@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 #[Route('/generic', name: 'app_base_generic_')]
 class EntityGenericController extends AbstractController
@@ -65,7 +66,7 @@ class EntityGenericController extends AbstractController
                     'entity' => \App\Entity\Process\FinishProcess::class,
                     'method' => 'addFinishProcess'
                 ]
-            ]//@todo voir pour ajout des process de traitement et de finition par défault
+            ]
         ],
         'print3d_material' => [
             'class' => \App\Entity\Process\Print3DMaterial::class,
@@ -80,7 +81,7 @@ class EntityGenericController extends AbstractController
                     'entity' => \App\Entity\Process\FinishProcess::class,
                     'method' => 'addFinishProcess'
                 ]
-            ]//@todo voir pour ajout des process de traitement et de finition par défault
+            ]
         ],
         'quality_process' => [
             'class' => \App\Entity\Process\QualityProcess::class,
@@ -94,6 +95,116 @@ class EntityGenericController extends AbstractController
         ],
         // ajoute d'autres entités ici
     ];
+
+    public function __construct(
+        private readonly ParameterBagInterface $params,
+    ) {}
+
+    private function handleFileUpload(UploadedFile $file): string
+    {
+        $fileName = uniqid() . '.' . $file->guessExtension();
+        $path = $this->params->get('project_data_path');
+        $file->move($path, $fileName);
+
+        return $path . '/' . $fileName;
+    }
+
+    private function updateEntityField($entity, string $field, mixed $value, array $config): void
+    {
+        $setter = 'set' . ucfirst($field);
+
+        if (!method_exists($entity, $setter)) {
+            return;
+        }
+
+        if (in_array($field, ['fileLink', 'methodLink'])) {
+            if ($value instanceof UploadedFile) {
+                $value = $this->handleFileUpload($value);
+            }
+        }
+
+        if (in_array($field, ['isSpecific', 'isActive'])) {
+            $value = (bool) $value;
+        } elseif (is_string($value)) {
+            $value = trim($value);
+        }
+
+        $entity->$setter($value);
+    }
+
+    private function updateManyToManyRelations($entity, string $field, mixed $value, array $relation, EntityManagerInterface $em): void
+    {
+        $repo = $em->getRepository($relation['entity']);
+        $method = $relation['method'];
+        $getter = 'get' . ucfirst($field);
+
+        if (method_exists($entity, $getter)) {
+            $current = $entity->$getter();
+            if (method_exists($current, 'clear')) {
+                $current->clear();
+            }
+        }
+
+        foreach ((array) $value as $relId) {
+            if ($related = $repo->find($relId)) {
+                $entity->$method($related);
+            }
+        }
+    }
+
+    #[Route('/update/{type}/{id}', name: 'app_base_generic_update', methods: ['PATCH', 'POST'])]
+    public function update(Request $request, string $type, int $id, EntityManagerInterface $em): JsonResponse
+    {
+        // Vérifier si c'est une requête POST qui simule un PATCH
+        if ($request->getMethod() === 'POST' && $request->headers->get('X-HTTP-Method-Override') === 'PATCH') {
+            $request->setMethod('PATCH');
+        }
+
+        if (!isset(self::ALLOWED_ENTITIES[$type])) {
+            return new JsonResponse(['error' => 'Type non autorisé'], 404);
+        }
+
+        $config = self::ALLOWED_ENTITIES[$type];
+        $entity = $em->getRepository($config['class'])->find($id);
+
+        if (!$entity) {
+            return new JsonResponse(['error' => 'Entité introuvable'], 404);
+        }
+
+        // Gestion des fichiers
+        $files = $request->files->all();
+        dump($files);
+        if (!empty($files)) {
+            foreach ($files as $field => $file) {
+                if (in_array($field, $config['fields'] ?? [])) {
+                    $this->updateEntityField($entity, $field, $file, $config);
+                }
+            }
+        }
+        // Gestion des données JSON
+        else {
+            $data = $request->getContent() ? json_decode($request->getContent(), true) : [];
+            foreach ($data as $field => $value) {
+                if (in_array($field, $config['fields'] ?? [])) {
+                    $this->updateEntityField($entity, $field, $value, $config);
+                }
+            }
+
+            // Gestion des relations ManyToMany (uniquement pour les données JSON)
+            foreach ($config['manyToMany_fields'] ?? [] as $field => $relation) {
+                if (isset($data[$field])) {
+                    $this->updateManyToManyRelations($entity, $field, $data[$field], $relation, $em);
+                }
+            }
+        }
+
+        $em->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'message' => 'Mise à jour effectuée avec succès'
+        ]);
+    }
 
     #[Route('/create/{type}', name: 'create', methods: ['POST'])]
     public function create(
@@ -120,7 +231,6 @@ class EntityGenericController extends AbstractController
                 $value = trim($request->request->get($fieldName, ''));
             }
 
-            //@todo corriger le problème de chargement qui renvoie null
             if($fieldName === 'fileLink' || $fieldName === 'methodLink') {
                 /** @var UploadedFile|null $file */
                 $file = $request->files->get($fieldName);
@@ -157,58 +267,5 @@ class EntityGenericController extends AbstractController
 
         $this->addFlash('success', ucfirst($type) . ' ajouté avec succès.');
         return $this->redirectToRoute($config['redirect_route']);
-    }
-
-    #[Route('/update/{type}/{id}', name: 'app_base_generic_update', methods: ['PATCH'])]
-    public function update(Request $request, string $type, int $id, EntityManagerInterface $em): JsonResponse
-    {
-        if (!isset(self::ALLOWED_ENTITIES[$type])) {
-            return new JsonResponse(['error' => 'Type non autorisé'], 404);
-        }
-
-        $config = self::ALLOWED_ENTITIES[$type];
-        $entity = $em->getRepository($config['class'])->find($id);
-        if (!$entity) {
-            return new JsonResponse(['error' => 'Entité introuvable'], 404);
-        }
-
-        // lecture des données : JSON ou formulaire
-        $data = json_decode($request->getContent(), true) ?? $request->request->all();
-
-        foreach ($data as $field => $value) {
-            if (in_array($field, $config['fields'] ?? [])) {
-                $setter = 'set' . ucfirst($field);
-                if (method_exists($entity, $setter)) {
-                    $entity->$setter(is_string($value) ? trim($value) : $value);
-                }
-            }
-            if (in_array($field, $config['bool_fields'] ?? [])) {
-                $setter = 'set' . ucfirst($field);
-                if (method_exists($entity, $setter)) {
-                    $entity->$setter((bool)$value);
-                }
-            }
-            if (array_key_exists($field, $config['manyToMany_fields'] ?? [])) {
-                $relation = $config['manyToMany_fields'][$field];
-                $repo = $em->getRepository($relation['entity']);
-                $method = $relation['method'];
-
-                $current = method_exists($entity, 'get' . ucfirst($field)) ? $entity->{'get' . ucfirst($field)}() : null;
-                if ($current && method_exists($current, 'clear')) {
-                    $current->clear();
-                }
-
-                foreach ((array) $value as $relId) {
-                    $related = $repo->find($relId);
-                    if ($related) {
-                        $entity->{$method}($related);
-                    }
-                }
-            }
-        }
-
-        $em->flush();
-
-        return new JsonResponse(['success' => true]);
     }
 }
