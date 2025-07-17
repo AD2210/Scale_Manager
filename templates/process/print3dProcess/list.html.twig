@@ -20,7 +20,7 @@
     <tr class="bg-light border rounded shadow-sm align-middle">
         {% include 'components/_form_add_entity.html.twig' with {
             route: 'app_base_generic_create',
-            route_parameters: { type: 'assembly_process' },
+            route_parameters: { type: 'print3d_process' },
             form_class: 'mt-2',
             fields: [
                 { name: 'name', type: 'text', placeholder: 'Nom du process', required: true },

@@ -3,8 +3,8 @@
 namespace App\Controller;
 
 use Doctrine\ORM\EntityManagerInterface;
-use PhpParser\Node\Expr\Array_;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -54,12 +54,32 @@ class EntityGenericController extends AbstractController
         'print3d_process' => [
             'class' => \App\Entity\Process\Print3DProcess::class,
             'redirect_route' => 'app_print3d_process_list',
-            'fields' => ['name', 'isActive'] //@todo voir pour ajout des process de traitement et de finition par défault
+            'fields' => ['name', 'isActive'],
+            'manyToMany_fields' => [
+                'treatmentProcess' => [
+                    'entity' => \App\Entity\Process\TreatmentProcess::class,
+                    'method' => 'addTreatmentProcess'
+                ],
+                'finishProcess' => [
+                    'entity' => \App\Entity\Process\FinishProcess::class,
+                    'method' => 'addFinishProcess'
+                ]
+            ]//@todo voir pour ajout des process de traitement et de finition par défault
         ],
         'print3d_material' => [
             'class' => \App\Entity\Process\Print3DMaterial::class,
             'redirect_route' => 'app_print3d_material_list',
-            'fields' => ['name', 'isActive'] //@todo voir pour ajout des process de traitement et de finition par défault
+            'fields' => ['name', 'isActive'],
+            'manyToMany_fields' => [
+                'treatmentProcess' => [
+                    'entity' => \App\Entity\Process\TreatmentProcess::class,
+                    'method' => 'addTreatmentProcess'
+                ],
+                'finishProcess' => [
+                    'entity' => \App\Entity\Process\FinishProcess::class,
+                    'method' => 'addFinishProcess'
+                ]
+            ]//@todo voir pour ajout des process de traitement et de finition par défault
         ],
         'quality_process' => [
             'class' => \App\Entity\Process\QualityProcess::class,
@@ -91,22 +111,43 @@ class EntityGenericController extends AbstractController
 
         $entity = new $class();
 
+        //Gestions des champs hors file
         foreach ($fields as $fieldName) {
-            $value = trim($request->request->get($fieldName, ''));
-            if ($fieldName === 'name' && $value === '') {
-                $this->addFlash('danger', 'Le champ "Nom" est requis.');
-                return $this->redirectToRoute($config['redirect_route']);
-            }
             if ($fieldName === 'isSpecific' || $fieldName === 'isActive') {
-                (bool)$value = $request->request->has($fieldName); // booléen
+                $value = $request->request->has($fieldName); // booléen
             } else {
                 $value = trim($request->request->get($fieldName, ''));
             }
-            //dump($fieldName, $value);
+
+            //@todo corriger le problème de chargement qui renvoie null
+            if($fieldName === 'fileLink' || $fieldName === 'methodLink') {
+                /** @var UploadedFile|null $file */
+                $file = $request->files->get($fieldName);
+                if ($file) {
+                    $fileName = uniqid() . '.' . $file->guessExtension();
+                    $file->move($this->getParameter('project_data_path'), $fileName);
+                    $value = $this->getParameter('project_data_path') .'/' .$fileName;
+                }
+            }
+
             // setter dynamique : setName, etc.
             $setter = 'set' . ucfirst($fieldName);
             if (method_exists($entity, $setter)) {
                 $entity->$setter($value ?: null);
+            }
+        }
+
+        foreach ($config['manyToMany_fields'] ?? [] as $field => $relation) {
+            //dd($request->request->all(), $relation, $entity, $field, $relation['repo'], $relation['method']);
+            $ids = $request->request->all($field); // tableau d’IDs
+            $repo = $em->getRepository($relation['entity']);
+            $addMethod = $relation['method'];
+
+            foreach ((array) $ids as $id) {
+                $related = $repo->find($id);
+                if ($related && method_exists($entity, $addMethod)) {
+                    $entity->$addMethod($related);
+                }
             }
         }
 
