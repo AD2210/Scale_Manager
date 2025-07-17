@@ -97,8 +97,13 @@ class EntityGenericController extends AbstractController
                 $this->addFlash('danger', 'Le champ "Nom" est requis.');
                 return $this->redirectToRoute($config['redirect_route']);
             }
-
-            // setter dynamique : setName, setCode, etc.
+            if ($fieldName === 'isSpecific' || $fieldName === 'isActive') {
+                (bool)$value = $request->request->has($fieldName); // booléen
+            } else {
+                $value = trim($request->request->get($fieldName, ''));
+            }
+            //dump($fieldName, $value);
+            // setter dynamique : setName, etc.
             $setter = 'set' . ucfirst($fieldName);
             if (method_exists($entity, $setter)) {
                 $entity->$setter($value ?: null);
