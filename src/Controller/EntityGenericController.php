@@ -2,22 +2,18 @@
 
 namespace App\Controller;
 
+use App\Service\EntityManagerService;
+use App\Service\FileManagerService;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 #[Route('/generic', name: 'app_base_generic_')]
 class EntityGenericController extends AbstractController
 {
-    /**
-     * Liste des entités autorisées à être créées dynamiquement.
-     */
     private const ALLOWED_ENTITIES = [
         'software' => [
             'class' => \App\Entity\Base\Software::class,
@@ -98,234 +94,141 @@ class EntityGenericController extends AbstractController
     ];
 
     public function __construct(
-        private readonly ParameterBagInterface $params,
-    )
-    {
+        private readonly EntityManagerService $entityService,
+        private readonly FileManagerService $fileService,
+        private readonly EntityManagerInterface $em
+    ) {
     }
 
-    private function handleFileUpload(UploadedFile $file): string
+    private function validateEntityType(string $type): ?JsonResponse
     {
-        $fileName = uniqid() . '.' . $file->guessExtension();
-        $path = $this->params->get('project_data_path');
-        $file->move($path, $fileName);
-
-        return $path . '/' . $fileName;
-    }
-
-    private function updateEntityField($entity, string $field, mixed $value, array $config): void
-    {
-        $setter = 'set' . ucfirst($field);
-
-        if (!method_exists($entity, $setter)) {
-            return;
-        }
-
-        if (in_array($field, ['fileLink', 'methodLink'])) {
-            if ($value instanceof UploadedFile) {
-                $value = $this->handleFileUpload($value);
-            }
-        }
-
-        if (in_array($field, ['isSpecific', 'isActive'])) {
-            $value = (bool)$value;
-        } elseif (is_string($value)) {
-            $value = trim($value);
-        }
-
-        $entity->$setter($value);
-    }
-
-    private function updateManyToManyRelations($entity, string $field, mixed $value, array $relation, EntityManagerInterface $em): void
-    {
-        $repo = $em->getRepository($relation['entity']);
-        $method = $relation['method'];
-        $getter = 'get' . ucfirst($field);
-
-        if (method_exists($entity, $getter)) {
-            $current = $entity->$getter();
-            if (method_exists($current, 'clear')) {
-                $current->clear();
-            }
-        }
-
-        foreach ((array)$value as $relId) {
-            if ($related = $repo->find($relId)) {
-                $entity->$method($related);
-            }
-        }
-    }
-
-    #[Route('/update/{type}/{id}', name: 'app_base_generic_update', methods: ['PATCH', 'POST'])]
-    public function update(Request $request, string $type, int $id, EntityManagerInterface $em): JsonResponse
-    {
-        // Vérifier si c'est une requête POST qui simule un PATCH
-        if ($request->getMethod() === 'POST' && $request->headers->get('X-HTTP-Method-Override') === 'PATCH') {
-            $request->setMethod('PATCH');
-        }
-
         if (!isset(self::ALLOWED_ENTITIES[$type])) {
             return new JsonResponse(['error' => 'Type non autorisé'], 404);
         }
-
-        $config = self::ALLOWED_ENTITIES[$type];
-        $entity = $em->getRepository($config['class'])->find($id);
-
-        if (!$entity) {
-            return new JsonResponse(['error' => 'Entité introuvable'], 404);
-        }
-
-        // Gestion des fichiers
-        $files = $request->files->all();
-        dump($files);
-        if (!empty($files)) {
-            foreach ($files as $field => $file) {
-                if (in_array($field, $config['fields'] ?? [])) {
-                    $this->updateEntityField($entity, $field, $file, $config);
-                }
-            }
-        } // Gestion des données JSON
-        else {
-            $data = $request->getContent() ? json_decode($request->getContent(), true) : [];
-            foreach ($data as $field => $value) {
-                if (in_array($field, $config['fields'] ?? [])) {
-                    $this->updateEntityField($entity, $field, $value, $config);
-                }
-            }
-
-            // Gestion des relations ManyToMany (uniquement pour les données JSON)
-            foreach ($config['manyToMany_fields'] ?? [] as $field => $relation) {
-                if (isset($data[$field])) {
-                    $this->updateManyToManyRelations($entity, $field, $data[$field], $relation, $em);
-                }
-            }
-        }
-
-        $em->flush();
-
-        return new JsonResponse([
-            'success' => true,
-            'message' => 'Mise à jour effectuée avec succès'
-        ]);
+        return null;
     }
 
-    #[Route('/create/{type}', name: 'create', methods: ['POST'])]
-    public function create(
-        string                 $type,
-        Request                $request,
-        EntityManagerInterface $em
-    ): Response
+    private function getEntity(string $type, ?int $id = null)
     {
-        if (!array_key_exists($type, self::ALLOWED_ENTITIES)) {
-            throw $this->createNotFoundException('Type d’entité non autorisé');
-        }
-
         $config = self::ALLOWED_ENTITIES[$type];
-        $class = $config['class'];
-        /** @var array $fields */
-        $fields = $config['fields'];
-
-        $entity = new $class();
-
-        //Gestions des champs hors file
-        foreach ($fields as $fieldName) {
-            if ($fieldName === 'isSpecific' || $fieldName === 'isActive') {
-                $value = $request->request->has($fieldName); // booléen
-            } else {
-                $value = trim($request->request->get($fieldName, ''));
-            }
-
-            if ($fieldName === 'fileLink' || $fieldName === 'methodLink') {
-                /** @var UploadedFile|null $file */
-                $file = $request->files->get($fieldName);
-                if ($file) {
-                    $fileName = uniqid() . '.' . $file->guessExtension();
-                    $file->move($this->getParameter('project_data_path'), $fileName);
-                    $value = $this->getParameter('project_data_path') . '/' . $fileName;
-                }
-            }
-
-            // setter dynamique : setName, etc.
-            $setter = 'set' . ucfirst($fieldName);
-            if (method_exists($entity, $setter)) {
-                $entity->$setter($value ?: null);
-            }
-        }
-
-        foreach ($config['manyToMany_fields'] ?? [] as $field => $relation) {
-            //dd($request->request->all(), $relation, $entity, $field, $relation['repo'], $relation['method']);
-            $ids = $request->request->all($field); // tableau d’IDs
-            $repo = $em->getRepository($relation['entity']);
-            $addMethod = $relation['method'];
-
-            foreach ((array)$ids as $id) {
-                $related = $repo->find($id);
-                if ($related && method_exists($entity, $addMethod)) {
-                    $entity->$addMethod($related);
-                }
-            }
-        }
-
-        $em->persist($entity);
-        $em->flush();
-
-        $this->addFlash('success', ucfirst($type) . ' ajouté avec succès.');
-        return $this->redirectToRoute($config['redirect_route']);
+        return $id ? $this->em->getRepository($config['class'])->find($id) : new $config['class']();
     }
 
-    #[Route('/delete/{type}/{id}', name: 'delete', methods: ['DELETE'])]
-    public function delete(
-        string                 $type,
-        int                    $id,
-        EntityManagerInterface $em
-    ): JsonResponse
+    #[Route('/update/{type}/{id}', name: 'update', methods: ['PATCH', 'POST'])]
+    public function update(Request $request, string $type, int $id): JsonResponse
     {
+        if ($response = $this->validateEntityType($type)) {
+            return $response;
+        }
+
         try {
-            if (!isset(self::ALLOWED_ENTITIES[$type])) {
-                return new JsonResponse(['error' => 'Type non autorisé'], 404);
-            }
-
             $config = self::ALLOWED_ENTITIES[$type];
-            $entity = $em->getRepository($config['class'])->find($id);
+            $entity = $this->getEntity($type, $id);
 
             if (!$entity) {
                 return new JsonResponse(['error' => 'Entité introuvable'], 404);
             }
 
-            // Suppression des fichiers associés si nécessaire
-            foreach (['fileLink', 'methodLink'] as $fileField) {
-                if (method_exists($entity, 'get' . ucfirst($fileField))) {
-                    $getter = 'get' . ucfirst($fileField);
-                    $filePath = $entity->$getter();
-                    if ($filePath && file_exists($filePath)) {
-                        unlink($filePath);
+            // Traitement des fichiers
+            foreach ($request->files->all() as $field => $file) {
+                if (in_array($field, $config['fields'] ?? [])) {
+                    $this->entityService->updateEntityField($entity, $field, $file, $config);
+                }
+            }
+
+            // Traitement des données JSON
+            if ($jsonData = json_decode($request->getContent(), true)) {
+                foreach ($jsonData as $field => $value) {
+                    if (in_array($field, $config['fields'] ?? [])) {
+                        $this->entityService->updateEntityField($entity, $field, $value, $config);
+                    }
+                }
+
+                foreach ($config['manyToMany_fields'] ?? [] as $field => $relation) {
+                    if (isset($jsonData[$field])) {
+                        $this->entityService->updateManyToManyRelations($entity, $field, $jsonData[$field], $relation);
                     }
                 }
             }
 
-            $em->remove($entity);
-            $em->flush();
+            $this->em->flush();
+            return new JsonResponse(['success' => true]);
+
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    #[Route('/create/{type}', name: 'create', methods: ['POST'])]
+    public function create(Request $request, string $type): JsonResponse
+    {
+        if ($response = $this->validateEntityType($type)) {
+            return $response;
+        }
+
+        try {
+            /** @var array $config */
+            $config = self::ALLOWED_ENTITIES[$type];
+            $entity = $this->getEntity($type);
+
+            // Traitement des champs simples
+            foreach ($config['fields'] as $field) {
+                $value = $request->request->get($field) ?? $request->files->get($field);
+                $this->entityService->updateEntityField($entity, $field, $value, $config);
+            }
+
+            // Traitement des relations ManyToMany
+            foreach ($config['manyToMany_fields'] ?? [] as $field => $relation) {
+                $ids = $request->request->all($field);
+                $this->entityService->updateManyToManyRelations($entity, $field, $ids, $relation);
+            }
+
+            $this->em->persist($entity);
+            $this->em->flush();
 
             return new JsonResponse([
-                'success' => true,
-                'message' => 'Suppression effectuée avec succès'
+                'success' => true
             ]);
-        } catch (ForeignKeyConstraintViolationException $e) {
-            return new JsonResponse(
-                [
-                    'success' => false,
-                    'error' => 'constraint',
-                    'message' => 'Cet élément ne peut pas être supprimé car il est lié à d\'autres éléments'
-                ],
-                409
-            );
+
         } catch (\Exception $e) {
-            return new JsonResponse(
-                [
-                    'success' => false,
-                    'error' => 'Erreur lors de la suppression'
-                ],
-                500
-            );
+            return new JsonResponse(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    #[Route('/delete/{type}/{id}', name: 'delete', methods: ['DELETE'])]
+    public function delete(string $type, int $id): JsonResponse
+    {
+        if ($response = $this->validateEntityType($type)) {
+            return $response;
+        }
+
+        try {
+            $entity = $this->getEntity($type, $id);
+
+            if (!$entity) {
+                return new JsonResponse(['error' => 'Entité introuvable'], 404);
+            }
+
+            // Suppression des fichiers associés
+            foreach (['fileLink', 'methodLink'] as $fileField) {
+                if (method_exists($entity, 'get' . ucfirst($fileField))) {
+                    $this->fileService->deleteFile($entity->{'get' . ucfirst($fileField)}());
+                }
+            }
+
+            $this->em->remove($entity);
+            $this->em->flush();
+
+            return new JsonResponse(['success' => true]);
+
+        } catch (ForeignKeyConstraintViolationException) {
+            return new JsonResponse([
+                'success' => false,
+                'error' => 'constraint',
+                'message' => 'Cet élément ne peut pas être supprimé car il est lié à d\'autres éléments'
+            ], 409);
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
 }
