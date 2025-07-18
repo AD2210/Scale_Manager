@@ -1,0 +1,32 @@
+<form
+    data-controller="create"
+    data-create-type-value="{{ entityType }}"
+    data-action="submit->create#create"
+    data-create-target="form"
+    class="row gx-2 gy-1 align-items-center {{ form_class|default('') }}"
+>
+    {% for field in fields %}
+        <div class="{{ field.col|default('col') }}">
+            {% set type = field.type|default('text') %}
+
+            {% if type == 'checkbox' %}
+                {% include 'components/editable/_checkbox_field.html.twig' with field only %}
+            {% elseif type == 'textarea' %}
+                {% include 'components/editable/_textarea_field.html.twig' with field only %}
+            {% elseif type == 'file' %}
+                {% include 'components/editable/_file_field.html.twig' with field only %}
+            {% elseif type == 'select' %}
+                {# Dropdown à améliorer plus tard avec autocomplete #}
+                {% include 'components/editable/_dropdown_field.html.twig' with field only %}
+            {% else %}
+                {% include 'components/editable/_input_field.html.twig' with field only %}
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    <div class="col-auto">
+        {% include 'components/buttons/_add_button.html.twig' with {
+            id: 'add-button'
+        } %}
+    </div>
+</form>

@@ -1,0 +1,17 @@
+<td>
+    <form class="file-upload-form d-flex align-items-center gap-2" enctype="multipart/form-data">
+        <input type="file"
+               name="{{ field }}"
+               class="form-control"
+               data-controller="editable"
+               data-editable-id-value="{{ entityId }}"
+               data-editable-type-value="{{ entityType }}"
+               data-editable-field-value="{{ field }}"
+               data-action="change->editable#update">
+        {% if view_route %}
+            <a class="btn btn-sm btn-outline-primary" href="{{ path(view_route, { id: entityId }) }}" target="_blank" title="Voir">
+                <i class="fa-solid fa-eye"></i>
+            </a>
+        {% endif %}
+    </form>
+</td>

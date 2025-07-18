@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container mt-1 ms-1">
+        <table class="table table-hover align-middle table-striped border shadow-sm">
+            <thead class="table-light">
+            {% block table_head %}
+                <th class="text-center">Actions</th>
+            {% endblock %}
+            </thead>
+
+            <tbody>
+            {% block table_add_form %}{% endblock %}
+
+            {% block table_rows %}
+                {% for item in items %}
+                    <tr data-id="{{ item.id }}">
+                        {% with { item: item } %}
+                            {{ block('table_row_columns') }}
+                        {% endwith %}
+                        {% include 'components/buttons/_delete_button.html.twig' with {
+                            entityId: item.id,
+                            entityType: entityType
+                        } only %}
+                    </tr>
+                {% endfor %}
+            {% endblock %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

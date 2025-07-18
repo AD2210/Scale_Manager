@@ -1,0 +1,26 @@
+<td class="editable"
+    data-controller="editable"
+    data-editable-id-value="{{ entityId }}"
+    data-editable-type-value="{{ entityType }}"
+    data-editable-field-value="{{ field }}">
+    <div class="dropdown-multiselect" data-field="{{ field }}">
+        <button type="button" class="btn btn-outline-secondary dropdown-toggle w-100" data-bs-toggle="dropdown" aria-expanded="false">
+            {{ label is defined ? label : '' }}
+        </button>
+        <ul class="dropdown-menu p-2" style="min-width: 200px;">
+            {% for item in items %}
+                <li>
+                    <label class="form-check">
+                        <input class="form-check-input {{ name }}"
+                               type="checkbox"
+                               name="{{ field }}[]"
+                               value="{{ item.id }}"
+                               {% if item in value|default([]) %}checked{% endif %}
+                               data-action="change->editable#update">
+                        {{ item.name }}
+                    </label>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</td>

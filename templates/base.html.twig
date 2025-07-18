@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="ScaleManager est une application Web de gestion de production">
+    <meta name="author" content="Anthony Delbée">
+    <meta name="contact" content="contact.webprocreations@gmail.com">
+    <meta name="robots" content="noindex, nofollow">
+    <script src="https://kit.fontawesome.com/988c8cacf7.js" crossorigin="anonymous"></script>
+
+    <title>{% block title %}Scale Manager{% endblock %}</title>
+
+    {% block stylesheets %}
+            {{ encore_entry_link_tags('app') }}
+    {% endblock %}
+
+    {% block javascripts %}
+            {{ encore_entry_script_tags('app') }}
+    {% endblock %}
+</head>
+<body class="d-flex flex-column h-100 overflow-hidden" data-page="{{ app.request.attributes.get('_route') }}" data-entity="{{ entityClass|default('') }}">
+<main class="d-flex flex-nowrap vh-100 overflow-hidden">
+    <div class="d-flex flex-column flex-shrink-0 py-4 px-3 bg-body-tertiary border-end" style="width: 250px;">
+        <a href="{{ path('app_project_index') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+            <span class="fs-4">SCALE Manager</span> </a>
+        <hr>
+        <ul class="nav nav-pills flex-column mb-auto">
+            <!-- Nav Button -->
+            <li class="nav-item">
+                <a href="{{ path('app_project_index') }}" class="nav-link" aria-current="page">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-house"></i>
+                        Accueil
+                    </div>
+                </a>
+            </li>
+            <!-- End Nav Button -->
+            <li class="nav-item">
+                <a href="#" class="nav-link active" aria-current="page">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        Dashboard
+                    </div>
+                </a>
+            </li>
+            <!-- Item avec collapse -->
+            <!-- Section Projet -->
+            <li data-controller="collapse-arrow"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseProjet"
+                role="button"
+                aria-expanded="false"
+                aria-controls="collapseProjet"
+                class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center">
+                    <span><i class="fa-solid fa-diagram-project me-2"></i> Projet</span>
+                    <i data-collapse-arrow-target="icon" class="fa-solid fa-chevron-down transition"></i>
+                </a>
+                <div class="collapse ps-3" id="collapseProjet">
+                    <ul class="nav flex-column">
+                        <li class="nav-item"><a class="nav-link" href="#">Sous-projet 1</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#">Sous-projet 2</a></li>
+                    </ul>
+                </div>
+            </li>
+
+
+            <!-- Section Base -->
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center"
+                   data-bs-toggle="collapse"
+                   href="#collapseBase"
+                   role="button"
+                   aria-expanded="false"
+                   aria-controls="collapseBase">
+                    <span><i class="fa-solid fa-database me-2"></i> Base</span>
+                    <i class="fa-solid fa-chevron-down transition" id="arrowBase"></i>
+                </a>
+                <div class="collapse ps-3" id="collapseBase">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_customer_list') }}">Clients</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_manager_list') }}">Responsables</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_software_list') }}">Logiciels</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_sub_contractor_list') }}">Sous-traitant</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_slicer_profil_list') }}">Profil Slicer</a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+            <!-- Section Process -->
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center"
+                   data-bs-toggle="collapse"
+                   href="#collapseProcess"
+                   role="button"
+                   aria-expanded="false"
+                   aria-controls="collapseProcess">
+                    <span><i class="fa-solid fa-industry me-2"></i> Process</span>
+                    <i class="fa-solid fa-chevron-down transition" id="arrowBase"></i>
+                </a>
+                <div class="collapse ps-3" id="collapseProcess">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_print3d_material_list') }}">Matériaux</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_print3d_process_list') }}">Impression 3D</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_treatment_process_list') }}">Traitements</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_finish_process_list') }}">Finitions</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_assembly_process_list') }}">Assemblage</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_quality_process_list') }}">Qualité</a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            <!-- End DropDown Nav Button -->
+        </ul>
+    </div>
+    <!-- CONTENU PRINCIPAL -->
+    <div class="flex-grow-1">
+        <!-- Barre contextuelle -->
+        <div class="bg-light border-bottom page-header d-flex justify-content-between align-items-center py-3 px-4 sticky-top">
+            {% block page_header %}
+                <h1 class="h4 m-0">Titre de la page</h1>
+            {% endblock %}
+        </div>
+
+        <!-- Contenu principal -->
+        <div id="mainContainer" class="pt-4 pb-5 px-4 overflow-auto">
+            {% block body %}{% endblock %}
+        </div>
+    </div>
+</main>
+<div data-controller="toast"
+     data-toast-duration-value="3000">
+    <div data-toast-target="container"
+         class="toast-container position-fixed top-0 end-0 p-3"
+         style="z-index: 1100">
+    </div>
+</div>
+
+</body>
+</html>

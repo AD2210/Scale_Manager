@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau Projet{% endblock %}
+
+{% block page_header %}
+    <h1 class="h4 m-0">Nouveau projet</h1>
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    {{ form_label(form.title) }}
+                    {{ form_widget(form.title, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.title) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.customer) }}
+                    {{ form_widget(form.customer, {'attr': {'class': 'form-select'}}) }}
+                    {{ form_errors(form.customer) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.manager) }}
+                    {{ form_widget(form.manager, {'attr': {'class': 'form-select'}}) }}
+                    {{ form_errors(form.manager) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.deadline) }}
+                    {{ form_widget(form.deadline, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.deadline) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.quoteLink) }}
+                    {{ form_widget(form.quoteLink, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.quoteLink) }}
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="mb-3">
+                    {{ form_label(form.specificationLink) }}
+                    {{ form_widget(form.specificationLink, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.specificationLink) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.customerDataLink) }}
+                    {{ form_widget(form.customerDataLink, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.customerDataLink) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.modelLink) }}
+                    {{ form_widget(form.modelLink, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.modelLink) }}
+                </div>
+
+                <div class="form-check form-switch mb-3">
+                    {{ form_widget(form.isArchived, {'attr': {'class': 'form-check-input'}}) }}
+                    {{ form_label(form.isArchived, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                    {{ form_errors(form.isArchived) }}
+                </div>
+
+                <div class="form-check form-switch mb-3">
+                    {{ form_widget(form.isQualityOk, {'attr': {'class': 'form-check-input'}}) }}
+                    {{ form_label(form.isQualityOk, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                    {{ form_errors(form.isQualityOk) }}
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-4">
+            <button class="btn btn-primary">Créer</button>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+{% endblock %}
