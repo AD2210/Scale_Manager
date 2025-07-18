@@ -1,5 +1,7 @@
 {% extends 'components/_table_wrapper.html.twig' %}
 
+{% set entityType = 'finish_process' %}
+
 {% block title %}Liste des finitions{% endblock %}
 
 {% block page_header %}
@@ -8,9 +10,9 @@
 
 {% block table_head %}
     <tr>
-        <th class="col-8">Nom</th>
+        <th class="col-6">Nom</th>
         <th class="col-2 text-center">Actif</th>
-        <th class="col-2 text-center">Actions</th>
+        {{ parent() }}
     </tr>
 {% endblock %}
 
@@ -18,30 +20,28 @@
     <tr class="bg-light border rounded shadow-sm align-middle">
         {% include 'components/_form_add_entity.html.twig' with {
             route: 'app_base_generic_create',
-            route_parameters: { type: 'finish_process' },
+            route_parameters: { type: entityType },
             form_class: 'mt-2',
             fields: [
-                { name: 'name', type: 'text', placeholder: 'Nom du process', required: true },
-                { name: 'isActive', type: 'checkbox', value: false },
+                { name: 'name', type: 'text', placeholder: 'Nom de la finition', required: true },
+                { name: 'isActive', type: 'checkbox', value: false }
             ]
         } %}
     </tr>
 {% endblock %}
 
-{% block table_rows %}
-    {% for item in items %}
-        <tr data-id="{{ item.id }}">
-            {% include 'components/editable/_text_cell.html.twig' with {
-                field: 'name',
-                value: item.name
-            } %}
+{% block table_row_columns %}
+    {% include 'components/editable/_text_cell.html.twig' with {
+        entityId: item.id,
+        entityType: entityType,
+        field: 'name',
+        value: item.name
+    } %}
 
-            {% include 'components/editable/_checkbox_cell.html.twig' with {
-                field: 'isActive',
-                value: item.isActive
-            } %}
-
-            {% include 'components/buttons/_delete_button.html.twig' %}
-        </tr>
-    {% endfor %}
+    {% include 'components/editable/_checkbox_cell.html.twig' with {
+        entityId: item.id,
+        entityType: entityType,
+        field: 'isActive',
+        value: item.isActive
+    } %}
 {% endblock %}

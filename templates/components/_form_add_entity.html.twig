@@ -1,7 +1,8 @@
 <form
-    method="post"
-    action="{{ path(route, route_parameters|default({})) }}"
-    enctype="multipart/form-data"
+    data-controller="create"
+    data-create-type-value="{{ entityType }}"
+    data-action="submit->create#create"
+    data-create-target="form"
     class="row gx-2 gy-1 align-items-center {{ form_class|default('') }}"
 >
     {% for field in fields %}

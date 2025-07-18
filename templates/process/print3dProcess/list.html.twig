@@ -1,5 +1,7 @@
 {% extends 'components/_table_wrapper.html.twig' %}
 
+{% set entityType = 'print3d_process' %}
+
 {% block title %}Liste Print3D Process{% endblock %}
 
 {% block page_header %}
@@ -12,7 +14,7 @@
         <th class="col-2 text-center">Actif</th>
         <th class="col-3">Traitement</th>
         <th class="col-3">Finition</th>
-        <th class="col-1 text-center">Actions</th>
+        {{ parent() }}
     </tr>
 {% endblock %}
 
@@ -20,7 +22,7 @@
     <tr class="bg-light border rounded shadow-sm align-middle">
         {% include 'components/_form_add_entity.html.twig' with {
             route: 'app_base_generic_create',
-            route_parameters: { type: 'print3d_process' },
+            route_parameters: { type: entityType },
             form_class: 'mt-2',
             fields: [
                 { name: 'name', type: 'text', placeholder: 'Nom du process', required: true },
@@ -32,34 +34,36 @@
     </tr>
 {% endblock %}
 
-{% block table_rows %}
-    {% for item in items %}
-        <tr data-id="{{ item.id }}">
-            {% include 'components/editable/_text_cell.html.twig' with {
-                field: 'name',
-                value: item.name
-            } %}
+{% block table_row_columns %}
+    {% include 'components/editable/_text_cell.html.twig' with {
+        entityId: item.id,
+        entityType: entityType,
+        field: 'name',
+        value: item.name
+    } %}
 
-            {% include 'components/editable/_checkbox_cell.html.twig' with {
-                field: 'isActive',
-                value: item.isActive
-            } %}
+    {% include 'components/editable/_checkbox_cell.html.twig' with {
+        entityId: item.id,
+        entityType: entityType,
+        field: 'isActive',
+        value: item.isActive
+    } %}
 
-            {% include 'components/editable/_dropdown_cell.html.twig' with {
-                field: 'treatmentProcess',
-                name: 'treatment-checkbox',
-                value: item.treatmentProcess,
-                items: treatments
-            } %}
+    {% include 'components/editable/_dropdown_cell.html.twig' with {
+        entityId: item.id,
+        entityType: entityType,
+        field: 'treatmentProcess',
+        name: 'treatment-checkbox',
+        value: item.treatmentProcess,
+        items: treatments
+    } %}
 
-            {% include 'components/editable/_dropdown_cell.html.twig' with {
-                field: 'finishProcess',
-                name: 'finish-checkbox',
-                value: item.finishProcess,
-                items: finishes
-            } %}
-
-            {% include 'components/buttons/_delete_button.html.twig' %}
-        </tr>
-    {% endfor %}
+    {% include 'components/editable/_dropdown_cell.html.twig' with {
+        entityId: item.id,
+        entityType: entityType,
+        field: 'finishProcess',
+        name: 'finish-checkbox',
+        value: item.finishProcess,
+        items: finishes
+    } %}
 {% endblock %}

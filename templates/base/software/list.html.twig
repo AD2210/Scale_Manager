@@ -1,6 +1,6 @@
-{% set entityClass = 'App\\Entity\\Base\\Software' %}
-
 {% extends 'components/_table_wrapper.html.twig' %}
+
+{% set entityType = 'software' %}
 
 {% block title %}Liste des logiciels{% endblock %}
 
@@ -12,7 +12,7 @@
     <tr>
         <th class="col-6">Nom</th>
         <th class="col-2 text-center">Actif</th>
-        <th class="col-2 text-center">Actions</th>
+        {{ parent() }}
     </tr>
 {% endblock %}
 
@@ -30,20 +30,18 @@
     </tr>
 {% endblock %}
 
-{% block table_rows %}
-    {% for software in softwares %}
-        <tr data-id="{{ software.id }}">
-            {% include 'components/editable/_text_cell.html.twig' with {
-                field: 'name',
-                value: software.name
-            } %}
+{% block table_row_columns %}
+    {% include 'components/editable/_text_cell.html.twig' with {
+        entityId: item.id,
+        entityType: entityType,
+        field: 'name',
+        value: item.name
+    } %}
 
-            {% include 'components/editable/_checkbox_cell.html.twig' with {
-                field: 'isActive',
-                value: software.isActive
-            } %}
-
-            {% include 'components/buttons/_delete_button.html.twig' %}
-        </tr>
-    {% endfor %}
+    {% include 'components/editable/_checkbox_cell.html.twig' with {
+        entityId: item.id,
+        entityType: entityType,
+        field: 'isActive',
+        value: item.isActive
+    } %}
 {% endblock %}

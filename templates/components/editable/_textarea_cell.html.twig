@@ -1,3 +1,10 @@
 <td class="editable" data-field="{{ field }}">
-    <textarea class="form-control form-control-sm">{{ value }}</textarea>
+    <textarea
+        class="form-control form-control-sm"
+        data-controller="editable"
+        data-editable-id-value="{{ entityId }}"
+        data-editable-type-value="{{ entityType }}"
+        data-editable-field-value="{{ field }}"
+        data-action="blur->editable#update"
+    >{{ value }}</textarea>
 </td>

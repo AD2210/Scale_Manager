@@ -35,6 +35,8 @@
     },
     "homepage": "https://github.com/AD2210/Scale_Manager#readme",
     "dependencies": {
+        "@popperjs/core": "^2.11.8",
+        "@symfony/ux-turbo": "^2.27.0",
         "bootstrap": "^5.3.7",
         "jquery": "^3.7.1",
         "sass": "^1.89.2",
