@@ -18,7 +18,7 @@ export default class extends Controller {
 
             formData.append(this.fieldValue, file)
             options = {
-                method: 'POST', // Changé de PATCH à POST
+                method: 'POST',
                 headers: {
                     'X-HTTP-Method-Override': 'PATCH',
                     'X-Requested-With': 'XMLHttpRequest'
@@ -58,12 +58,16 @@ export default class extends Controller {
             })
             .then(data => {
                 if (data.success) {
-                    this.dispatch('success', { detail: data })
+                    document.dispatchEvent(new CustomEvent('toast:success', {
+                        detail: { message: 'Mise à jour effectuée avec succès' }
+                    }))
                 }
             })
             .catch(error => {
                 console.error('Erreur lors de la mise à jour:', error)
-                this.dispatch('error', { detail: { message: error.message } })
+                document.dispatchEvent(new CustomEvent('toast:error', {
+                    detail: { message: 'Erreur lors de la mise à jour' }
+                }))
             })
     }
 }

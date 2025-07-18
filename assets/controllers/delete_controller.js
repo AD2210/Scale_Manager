@@ -21,19 +21,28 @@ export default class extends Controller {
                 }
             })
 
-            if (!response.ok) {
-                throw new Error('Échec de la suppression')
-            }
-
             const data = await response.json()
-            if (data.success) {
-                // On supprime la ligne du tableau
+
+            if (response.ok && data.success) {
                 this.element.closest('tr').remove()
-                this.dispatch('success', { detail: data })
+                document.dispatchEvent(new CustomEvent('toast:success', {
+                    detail: { message: 'Élément supprimé avec succès' }
+                }))
+            } else if (response.status === 409 || (data.error && data.error.includes('constraint'))) {
+                // Cas spécifique : contrainte SQL (élément lié)
+                document.dispatchEvent(new CustomEvent('toast:warning', {
+                    detail: {
+                        message: 'Impossible de supprimer cet élément car il est lié à d\'autres éléments'
+                    }
+                }))
+            } else {
+                throw new Error(data.error || 'Échec de la suppression')
             }
         } catch (error) {
             console.error('Erreur lors de la suppression:', error)
-            this.dispatch('error', { detail: { message: error.message } })
+            document.dispatchEvent(new CustomEvent('toast:error', {
+                detail: { message: 'Erreur lors de la suppression' }
+            }))
         }
     }
 }

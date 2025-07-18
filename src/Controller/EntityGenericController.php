@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -98,7 +99,9 @@ class EntityGenericController extends AbstractController
 
     public function __construct(
         private readonly ParameterBagInterface $params,
-    ) {}
+    )
+    {
+    }
 
     private function handleFileUpload(UploadedFile $file): string
     {
@@ -124,7 +127,7 @@ class EntityGenericController extends AbstractController
         }
 
         if (in_array($field, ['isSpecific', 'isActive'])) {
-            $value = (bool) $value;
+            $value = (bool)$value;
         } elseif (is_string($value)) {
             $value = trim($value);
         }
@@ -145,7 +148,7 @@ class EntityGenericController extends AbstractController
             }
         }
 
-        foreach ((array) $value as $relId) {
+        foreach ((array)$value as $relId) {
             if ($related = $repo->find($relId)) {
                 $entity->$method($related);
             }
@@ -180,8 +183,7 @@ class EntityGenericController extends AbstractController
                     $this->updateEntityField($entity, $field, $file, $config);
                 }
             }
-        }
-        // Gestion des données JSON
+        } // Gestion des données JSON
         else {
             $data = $request->getContent() ? json_decode($request->getContent(), true) : [];
             foreach ($data as $field => $value) {
@@ -208,10 +210,11 @@ class EntityGenericController extends AbstractController
 
     #[Route('/create/{type}', name: 'create', methods: ['POST'])]
     public function create(
-        string $type,
-        Request $request,
+        string                 $type,
+        Request                $request,
         EntityManagerInterface $em
-    ): Response {
+    ): Response
+    {
         if (!array_key_exists($type, self::ALLOWED_ENTITIES)) {
             throw $this->createNotFoundException('Type d’entité non autorisé');
         }
@@ -231,13 +234,13 @@ class EntityGenericController extends AbstractController
                 $value = trim($request->request->get($fieldName, ''));
             }
 
-            if($fieldName === 'fileLink' || $fieldName === 'methodLink') {
+            if ($fieldName === 'fileLink' || $fieldName === 'methodLink') {
                 /** @var UploadedFile|null $file */
                 $file = $request->files->get($fieldName);
                 if ($file) {
                     $fileName = uniqid() . '.' . $file->guessExtension();
                     $file->move($this->getParameter('project_data_path'), $fileName);
-                    $value = $this->getParameter('project_data_path') .'/' .$fileName;
+                    $value = $this->getParameter('project_data_path') . '/' . $fileName;
                 }
             }
 
@@ -254,7 +257,7 @@ class EntityGenericController extends AbstractController
             $repo = $em->getRepository($relation['entity']);
             $addMethod = $relation['method'];
 
-            foreach ((array) $ids as $id) {
+            foreach ((array)$ids as $id) {
                 $related = $repo->find($id);
                 if ($related && method_exists($entity, $addMethod)) {
                     $entity->$addMethod($related);
@@ -271,38 +274,58 @@ class EntityGenericController extends AbstractController
 
     #[Route('/delete/{type}/{id}', name: 'delete', methods: ['DELETE'])]
     public function delete(
-        string $type,
-        int $id,
+        string                 $type,
+        int                    $id,
         EntityManagerInterface $em
-    ): JsonResponse {
-        if (!isset(self::ALLOWED_ENTITIES[$type])) {
-            return new JsonResponse(['error' => 'Type non autorisé'], 404);
-        }
+    ): JsonResponse
+    {
+        try {
+            if (!isset(self::ALLOWED_ENTITIES[$type])) {
+                return new JsonResponse(['error' => 'Type non autorisé'], 404);
+            }
 
-        $config = self::ALLOWED_ENTITIES[$type];
-        $entity = $em->getRepository($config['class'])->find($id);
+            $config = self::ALLOWED_ENTITIES[$type];
+            $entity = $em->getRepository($config['class'])->find($id);
 
-        if (!$entity) {
-            return new JsonResponse(['error' => 'Entité introuvable'], 404);
-        }
+            if (!$entity) {
+                return new JsonResponse(['error' => 'Entité introuvable'], 404);
+            }
 
-        // Suppression des fichiers associés si nécessaire
-        foreach (['fileLink', 'methodLink'] as $fileField) {
-            if (method_exists($entity, 'get' . ucfirst($fileField))) {
-                $getter = 'get' . ucfirst($fileField);
-                $filePath = $entity->$getter();
-                if ($filePath && file_exists($filePath)) {
-                    unlink($filePath);
+            // Suppression des fichiers associés si nécessaire
+            foreach (['fileLink', 'methodLink'] as $fileField) {
+                if (method_exists($entity, 'get' . ucfirst($fileField))) {
+                    $getter = 'get' . ucfirst($fileField);
+                    $filePath = $entity->$getter();
+                    if ($filePath && file_exists($filePath)) {
+                        unlink($filePath);
+                    }
                 }
             }
+
+            $em->remove($entity);
+            $em->flush();
+
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Suppression effectuée avec succès'
+            ]);
+        } catch (ForeignKeyConstraintViolationException $e) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'error' => 'constraint',
+                    'message' => 'Cet élément ne peut pas être supprimé car il est lié à d\'autres éléments'
+                ],
+                409
+            );
+        } catch (\Exception $e) {
+            return new JsonResponse(
+                [
+                    'success' => false,
+                    'error' => 'Erreur lors de la suppression'
+                ],
+                500
+            );
         }
-
-        $em->remove($entity);
-        $em->flush();
-
-        return new JsonResponse([
-            'success' => true,
-            'message' => 'Suppression effectuée avec succès'
-        ]);
     }
 }
