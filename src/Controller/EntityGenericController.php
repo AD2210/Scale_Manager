@@ -268,4 +268,41 @@ class EntityGenericController extends AbstractController
         $this->addFlash('success', ucfirst($type) . ' ajouté avec succès.');
         return $this->redirectToRoute($config['redirect_route']);
     }
+
+    #[Route('/delete/{type}/{id}', name: 'delete', methods: ['DELETE'])]
+    public function delete(
+        string $type,
+        int $id,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        if (!isset(self::ALLOWED_ENTITIES[$type])) {
+            return new JsonResponse(['error' => 'Type non autorisé'], 404);
+        }
+
+        $config = self::ALLOWED_ENTITIES[$type];
+        $entity = $em->getRepository($config['class'])->find($id);
+
+        if (!$entity) {
+            return new JsonResponse(['error' => 'Entité introuvable'], 404);
+        }
+
+        // Suppression des fichiers associés si nécessaire
+        foreach (['fileLink', 'methodLink'] as $fileField) {
+            if (method_exists($entity, 'get' . ucfirst($fileField))) {
+                $getter = 'get' . ucfirst($fileField);
+                $filePath = $entity->$getter();
+                if ($filePath && file_exists($filePath)) {
+                    unlink($filePath);
+                }
+            }
+        }
+
+        $em->remove($entity);
+        $em->flush();
+
+        return new JsonResponse([
+            'success' => true,
+            'message' => 'Suppression effectuée avec succès'
+        ]);
+    }
 }

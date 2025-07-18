@@ -23,7 +23,7 @@ class ListController extends AbstractController
     public function customerList(CustomerRepository $repo): Response
     {
         return $this->render('base/customer/list.html.twig', [
-            'customers' => $repo->findAll(),
+            'items' => $repo->findAll(),
         ]);
     }
 
@@ -31,7 +31,7 @@ class ListController extends AbstractController
     public function managerList(ManagerRepository $repo): Response
     {
         return $this->render('base/manager/list.html.twig', [
-            'managers' => $repo->findAll(),
+            'items' => $repo->findAll(),
         ]);
     }
 
@@ -39,7 +39,7 @@ class ListController extends AbstractController
     public function softwareList(SoftwareRepository $repo): Response
     {
         return $this->render('base/software/list.html.twig', [
-            'softwares' => $repo->findAll(),
+            'items' => $repo->findAll(),
         ]);
     }
 
@@ -47,7 +47,7 @@ class ListController extends AbstractController
     public function subContractorList(SubContractorRepository $repo): Response
     {
         return $this->render('base/subContractor/list.html.twig', [
-            'subContractors' => $repo->findAll(),
+            'items' => $repo->findAll(),
         ]);
     }
 
@@ -55,7 +55,7 @@ class ListController extends AbstractController
     public function slicerProfilList(SlicerProfilRepository $repo): Response
     {
         return $this->render('base/slicerProfil/list.html.twig', [
-            'profils' => $repo->findAll(),
+            'items' => $repo->findAll(),
         ]);
     }
 

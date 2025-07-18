@@ -1,5 +1,7 @@
 {% extends 'components/_table_wrapper.html.twig' %}
 
+{% set entityType = 'sub_contractor' %}
+
 {% block title %}Liste des sous-traitants{% endblock %}
 
 {% block page_header %}
@@ -10,13 +12,15 @@
     <tr>
         <th class="col-6">Nom</th>
         <th class="col-2 text-center">Actif</th>
-        <th class="col-2 text-center">Actions</th>
-    </tr>{% endblock %}
+        {{ parent() }}
+    </tr>
+{% endblock %}
+
 {% block table_add_form %}
     <tr class="bg-light border rounded shadow-sm align-middle">
         {% include 'components/_form_add_entity.html.twig' with {
             route: 'app_base_generic_create',
-            route_parameters: { type: 'sub_contractor' },
+            route_parameters: { type: entityType },
             form_class: 'mt-2',
             fields: [
                 { name: 'name', type: 'text', placeholder: 'Nom du sous-traitant', required: true },
@@ -25,24 +29,19 @@
         } %}
     </tr>
 {% endblock %}
-{% block table_rows %}
-    {% for item in subContractors %}
-        <tr data-id="{{ item.id }}">
-            {% include 'components/editable/_text_cell.html.twig' with {
-                entityId: item.id,
-                entityType: 'sub_contractor',
-                field: 'name',
-                value: item.name
-            } %}
 
-            {% include 'components/editable/_checkbox_cell.html.twig' with {
-                entityId: item.id,
-                entityType: 'sub_contractor',
-                field: 'isActive',
-                value: item.isActive
-            } %}
+{% block table_row_columns %}
+    {% include 'components/editable/_text_cell.html.twig' with {
+        entityId: item.id,
+        entityType: entityType,
+        field: 'name',
+        value: item.name
+    } %}
 
-            {% include 'components/buttons/_delete_button.html.twig' %}
-        </tr>
-    {% endfor %}
+    {% include 'components/editable/_checkbox_cell.html.twig' with {
+        entityId: item.id,
+        entityType: entityType,
+        field: 'isActive',
+        value: item.isActive
+    } %}
 {% endblock %}
