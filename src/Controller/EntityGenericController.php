@@ -90,6 +90,16 @@ class EntityGenericController extends AbstractController
             'redirect_route' => 'app_treatment_process_list',
             'fields' => ['name', 'isActive']
         ],
+        'model' => [
+            'class' => \App\Entity\Model::class,
+            'fields' => ['filName', 'isNeedTest', 'isReadyToPrint', 'slicerProfil'],
+            'fields_config' => [
+                'slicerProfil' => [
+                    'entity' => \App\Entity\Base\SlicerProfil::class,
+                    'type' => 'relation'
+                ]
+            ]
+        ],
         // ajoute d'autres entités ici
     ];
 
@@ -140,6 +150,9 @@ class EntityGenericController extends AbstractController
             if ($jsonData = json_decode($request->getContent(), true)) {
                 foreach ($jsonData as $field => $value) {
                     if (in_array($field, $config['fields'] ?? [])) {
+                        if( is_array($value)){
+                            // cas d'une relation ManyToOne renvoie un array avec 1 seul valeur qu'il faut convertir en entité
+                        }
                         $this->entityService->updateEntityField($entity, $field, $value, $config);
                     }
                 }
@@ -231,4 +244,6 @@ class EntityGenericController extends AbstractController
             return new JsonResponse(['error' => $e->getMessage()], 500);
         }
     }
+
+
 }

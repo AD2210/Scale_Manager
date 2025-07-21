@@ -1,0 +1,53 @@
+{% extends 'components/_table_wrapper.html.twig' %}
+
+{% set entityType = 'model' %}
+
+{% block title %}Liste des modèles{% endblock %}
+
+{% block page_header %}
+    <h1 class="h4 mb-0">Liste des modèles</h1>
+{% endblock %}
+
+{% block table_head %}
+    <tr>
+        <th class="col-4">Nom du fichier</th>
+        <th class="col-2 text-center">Test requis</th>
+        <th class="col-4">Profil slicer</th>
+        <th class="col-2 text-center">Prêt à imprimer</th>
+    </tr>
+{% endblock %}
+
+{% block table_rows %}
+    {% for item in items %}
+        <tr data-id="{{ item.id }}">
+            {% include 'components/_text_readonly.html.twig' with {
+                value: item.fileName
+            } %}
+
+            {% include 'components/editable/_checkbox_cell.html.twig' with {
+                value: item.isNeedTest,
+                field: 'isNeedTest',
+                entityId: item.id,
+                entityType: entityType
+            } %}
+
+            {% include 'components/editable/_dropdown_cell.html.twig' with {
+                entityId: item.id,
+                entityType: entityType,
+                field: 'slicerProfil',
+                name: 'slicerProfil-radio',
+                value: item.slicerProfil,
+                items: slicerProfils,
+                multiple: false,
+                placeholder: 'Aucun profil'
+            } %}
+
+            {% include 'components/editable/_checkbox_cell.html.twig' with {
+                value: item.isReadyToPrint,
+                field: 'isReadyToPrint',
+                entityId: item.id,
+                entityType: entityType
+            } %}
+        </tr>
+    {% endfor %}
+{% endblock %}

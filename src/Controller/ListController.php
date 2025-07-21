@@ -2,11 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\Project;
 use App\Repository\Base\CustomerRepository;
 use App\Repository\Base\ManagerRepository;
 use App\Repository\Base\SoftwareRepository;
 use App\Repository\Base\SubContractorRepository;
 use App\Repository\Base\SlicerProfilRepository;
+use App\Repository\ModelRepository;
 use App\Repository\Process\Print3DMaterialRepository;
 use App\Repository\Process\Print3DProcessRepository;
 use App\Repository\Process\TreatmentProcessRepository;
@@ -108,6 +110,15 @@ class ListController extends AbstractController
     {
         return $this->render('process/qualityProcess/list.html.twig', [
             'items' => $repo->findAll(),
+        ]);
+    }
+
+    #[Route('/model/project{id}', name: 'app_model_list')]
+    public function modelList(Project $project, ModelRepository $repo, SlicerProfilRepository $profilRepository): Response
+    {
+        return $this->render('model/list.html.twig', [
+            'items' => $repo->findBy(['project' => $project]),
+            'slicerProfils' => $profilRepository->findAll(),
         ]);
     }
 }
