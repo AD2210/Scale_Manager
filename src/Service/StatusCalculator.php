@@ -24,32 +24,44 @@ readonly class StatusCalculator
 
     public function calculateCustomerDataProgress(Project $project): array
     {
-        $cds = $this->customerDataRepository->findBy(['project' => $project]);
-        $total = 0;
-        $done = 0;
-        $nbSoftware = 0;
+        try {
+            $cds = $this->customerDataRepository->findBy(['project' => $project]);
+            $total = 0;
+            $done = 0;
+            $nbSoftware = 0;
 
-        foreach ($cds as $cd) {
-            $softwareCount = $this->customerDataOperationRepository->count(['customerData' => $cd]);
-            $nbSoftware = max($nbSoftware, $softwareCount);
-            $total += $softwareCount;
-            $done += $this->customerDataOperationRepository->count(['customerData' => $cd, 'isDone' => true]);
+            foreach ($cds as $cd) {
+                $operations = $cd->getCustomerDataOperations();
+
+                $softwareCount = $operations->count();
+                $nbSoftware = max($nbSoftware, $softwareCount);
+                $total += $softwareCount;
+
+                $doneCount = $operations->filter(fn($op) => $op->isIsDone())->count();
+                $done += $doneCount;
+            }
+
+            if (empty($cds)) {
+                return ['error' => 'Aucune données dans le dossier'];
+            }
+
+            if ($nbSoftware === 0) {
+                return ['error' => 'Aucun logiciel n\'est configuré pour les fichiers client.'];
+            }
+
+            $total /= $nbSoftware;
+            $done /= $nbSoftware;
+            $progress = $total > 0 ? round(($done / $total) * 100, 2) : 0;
+
+            return compact('done', 'total', 'progress');
+        } catch (\Exception $e) {
+            error_log('Erreur dans calculateCustomerDataProgress: ' . $e->getMessage());
+            error_log($e->getTraceAsString());
+            throw $e;
         }
-
-        if (empty($cds)) {
-            return ['error' => 'Aucune données dans le dossier'];
-        }
-
-        if ($nbSoftware === 0) {
-            return ['error' => 'Aucun logiciel n\'est configuré pour les fichiers client.'];
-        }
-
-        $total /= $nbSoftware;
-        $done /= $nbSoftware;
-        $progress = $total > 0 ? round(($done / $total) * 100, 2) : 0;
-
-        return compact('done', 'total', 'progress');
     }
+
+
 
     public function calculateModelProgress(Project $project): array
     {
