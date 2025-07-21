@@ -8,6 +8,7 @@ use App\Repository\Base\ManagerRepository;
 use App\Repository\Base\SoftwareRepository;
 use App\Repository\Base\SubContractorRepository;
 use App\Repository\Base\SlicerProfilRepository;
+use App\Repository\CustomerDataRepository;
 use App\Repository\ModelRepository;
 use App\Repository\Process\Print3DMaterialRepository;
 use App\Repository\Process\Print3DProcessRepository;

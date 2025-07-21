@@ -11,57 +11,49 @@ use Doctrine\ORM\Mapping as ORM;
 class CustomerDataOperation
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
+    #[ORM\ManyToOne(targetEntity: CustomerData::class, inversedBy: 'customerDataOperations')]
+    #[ORM\JoinColumn(name: 'customer_data_id', referencedColumnName: 'id', nullable: false)]
+    private CustomerData $customerData;
 
-    #[ORM\Column]
-    private ?bool $isDone = false;
+    #[ORM\Id]
+    #[ORM\ManyToOne(targetEntity: Software::class)]
+    #[ORM\JoinColumn(name: 'software_id', referencedColumnName: 'id', nullable: false)]
+    private Software $software;
 
-    #[ORM\ManyToOne]
-    private ?Software $software = null;
+    #[ORM\Column(type: 'boolean')]
+    private bool $isDone = false;
 
-    #[ORM\ManyToOne(inversedBy: 'customerDataOperations')]
-    private ?CustomerData $customerData = null;
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function isDone(): ?bool
-    {
-        return $this->isDone;
-    }
-
-    public function setIsDone(bool $isDone): static
-    {
-        $this->isDone = $isDone;
-
-        return $this;
-    }
-
-    public function getSoftware(): ?Software
-    {
-        return $this->software;
-    }
-
-    public function setSoftware(?Software $software): static
-    {
-        $this->software = $software;
-
-        return $this;
-    }
-
-    public function getCustomerData(): ?CustomerData
+    public function getCustomerData(): CustomerData
     {
         return $this->customerData;
     }
 
-    public function setCustomerData(?CustomerData $customerData): static
+    public function setCustomerData(CustomerData $customerData): self
     {
         $this->customerData = $customerData;
+        return $this;
+    }
 
+    public function getSoftware(): Software
+    {
+        return $this->software;
+    }
+
+    public function setSoftware(Software $software): self
+    {
+        $this->software = $software;
+        return $this;
+    }
+
+    public function isIsDone(): bool
+    {
+        return $this->isDone;
+    }
+
+    public function setIsDone(bool $isDone): self
+    {
+        $this->isDone = $isDone;
         return $this;
     }
 }
+

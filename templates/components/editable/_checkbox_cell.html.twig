@@ -1,10 +1,15 @@
-<td class="text-center editable" data-field="{{ field }}">
+<td class="text-center editable"
+    data-controller="editable"
+    data-editable-id-value="{{ entityId }}"
+    data-editable-type-value="{{ entityType }}"
+    data-editable-field-value="{{ field }}"
+    {% if additionalData is defined %}
+        data-additional-data="{{ additionalData|json_encode }}"
+    {% endif %}
+>
     <input type="checkbox"
            class="form-check-input"
            {% if value %}checked{% endif %}
-           data-controller="editable"
-           data-editable-id-value="{{ entityId }}"
-           data-editable-type-value="{{ entityType }}"
-           data-editable-field-value="{{ field }}"
            data-action="change->editable#update">
 </td>
+
