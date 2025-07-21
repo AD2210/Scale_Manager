@@ -150,6 +150,7 @@
         {# Carte impression 3D #}
         <div class="col-md-3">
             <div class="card h-100">
+                <a href="{{ path('app_print3d_list', {'id': project.id}) }}" class="text-decoration-none text-dark stretched-link"></a>
                 <div class="card-header">Impression 3D</div>
                 <div class="card-body">
                     {% if print3DDataset.error is defined %}

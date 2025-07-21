@@ -92,11 +92,35 @@ class EntityGenericController extends AbstractController
         ],
         'model' => [
             'class' => \App\Entity\Model::class,
-            'fields' => ['filName', 'isNeedTest', 'isReadyToPrint', 'slicerProfil'],
+            'fields' => [
+                'filName',
+                'isNeedTest',
+                'isReadyToPrint',
+                'slicerProfil',
+                'isSubContracted',
+                'subcontractor',
+                'quantity',
+                'isDelivered',
+                'print3dProcess',
+                'print3dMaterial',
+                'print3dStatus'
+            ],
             'fields_config' => [
                 'slicerProfil' => [
                     'entity' => \App\Entity\Base\SlicerProfil::class,
                     'type' => 'relation'
+                ],
+                'print3dProcess' => [
+                    'entity' => \App\Entity\Process\Print3DProcess::class,
+                    'type' => 'relation'
+                ],
+                'print3dMaterial' => [
+                    'entity' => \App\Entity\Process\Print3DMaterial::class,
+                    'type' => 'relation'
+                ],
+                'print3dStatus' => [
+                    'type' => 'enum',
+                    'class' => \App\Entity\Enum\Print3DStatusEnum::class
                 ]
             ]
         ],
@@ -104,10 +128,11 @@ class EntityGenericController extends AbstractController
     ];
 
     public function __construct(
-        private readonly EntityManagerService $entityService,
-        private readonly FileManagerService $fileService,
+        private readonly EntityManagerService   $entityService,
+        private readonly FileManagerService     $fileService,
         private readonly EntityManagerInterface $em
-    ) {
+    )
+    {
     }
 
     private function validateEntityType(string $type): ?JsonResponse
@@ -148,9 +173,18 @@ class EntityGenericController extends AbstractController
 
             // Traitement des données JSON
             if ($jsonData = json_decode($request->getContent(), true)) {
+                // Ajoutez ces lignes pour le debug
+                if (isset($jsonData['print3dStatus'])) {
+                    dump([
+                        'Valeur reçue' => $jsonData['print3dStatus'],
+                        'Type' => gettype($jsonData['print3dStatus'])
+                    ]);
+                }
+                // Fin debug
+
                 foreach ($jsonData as $field => $value) {
                     if (in_array($field, $config['fields'] ?? [])) {
-                        if( is_array($value)){
+                        if (is_array($value)) {
                             // cas d'une relation ManyToOne renvoie un array avec 1 seul valeur qu'il faut convertir en entité
                         }
                         $this->entityService->updateEntityField($entity, $field, $value, $config);

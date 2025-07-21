@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Enum\Print3DStatusEnum;
 use App\Entity\Project;
 use App\Repository\Base\CustomerRepository;
 use App\Repository\Base\ManagerRepository;
@@ -122,4 +123,20 @@ class ListController extends AbstractController
             'slicerProfils' => $profilRepository->findAll(),
         ]);
     }
+
+    #[Route('/print3d/project{id}', name: 'app_print3d_list')]
+    public function list(
+        Project $project,
+        ModelRepository $modelRepository,
+        Print3DProcessRepository $processRepository,
+        Print3DMaterialRepository $materialRepository
+    ): Response {
+        return $this->render('print3d/list.html.twig', [
+            'items' => $modelRepository->findBy(['project' => $project]),
+            'print3dProcesses' => $processRepository->findAll(),
+            'print3dMaterials' => $materialRepository->findAll(),
+            'print3dStatuses' => Print3DStatusEnum::cases(),
+        ]);
+    }
+
 }

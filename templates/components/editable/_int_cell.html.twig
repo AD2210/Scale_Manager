@@ -1,0 +1,11 @@
+<td class="editable" data-field="{{ field }}">
+    <input type="number"
+           class="form-control form-control-sm"
+           value="{{ value }}"
+           min="0"
+           data-controller="editable"
+           data-editable-id-value="{{ entityId }}"
+           data-editable-type-value="{{ entityType }}"
+           data-editable-field-value="{{ field }}"
+           data-action="blur->editable#update">
+</td>

@@ -1,0 +1,44 @@
+
+<td class="editable"
+    data-controller="editable"
+    data-editable-id-value="{{ entityId }}"
+    data-editable-type-value="{{ entityType }}"
+    data-editable-field-value="{{ field }}">
+    <div class="dropdown-multiselect" data-field="{{ field }}">
+        <button type="button" class="btn btn-outline-secondary dropdown-toggle w-100" data-bs-toggle="dropdown" aria-expanded="false">
+            {% if value is not null %}
+                {{ value.value }}
+            {% else %}
+                {{ placeholder|default('Sélectionner...') }}
+            {% endif %}
+        </button>
+        <ul class="dropdown-menu p-2" style="min-width: 200px;">
+            {% if placeholder is defined %}
+                <li>
+                    <label class="form-check">
+                        <input class="form-check-input {{ name|default('') }}"
+                               type="radio"
+                               name="{{ field }}_{{ entityId }}"
+                               value=""
+                               {% if value is null %}checked{% endif %}
+                               data-action="change->editable#update">
+                        {{ placeholder }}
+                    </label>
+                </li>
+            {% endif %}
+            {% for item in options %}
+                <li>
+                    <label class="form-check">
+                        <input class="form-check-input {{ name|default('') }}"
+                               type="radio"
+                               name="{{ field }}_{{ entityId }}"
+                               value="{{ item.name }}"
+                               {% if value is same as(item) %}checked{% endif %}
+                               data-action="change->editable#update">
+                        {{ item.value }}
+                    </label>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</td>

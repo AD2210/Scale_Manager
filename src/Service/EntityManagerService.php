@@ -10,8 +10,9 @@ class EntityManagerService
 {
     public function __construct(
         private readonly FileManagerService $fileManager,
-        private readonly EntityManagerInterface $em
-    ) {
+        private EntityManagerInterface $em
+    )
+    {
     }
 
     public function updateEntityField($entity, string $field, mixed $value, array $config): void
@@ -22,11 +23,26 @@ class EntityManagerService
             return;
         }
 
-        if (isset($config['fields_config'][$field]['type']) &&
-            $config['fields_config'][$field]['type'] === 'relation') {
-            $this->updateEntityRelation($entity, $field, $value, $config);
-            return;
+        if (isset($config['fields_config'][$field])) {
+            $fieldConfig = $config['fields_config'][$field];
+
+            if ($fieldConfig['type'] === 'relation') {
+                $this->updateEntityRelation($entity, $field, $value, $config);
+                return;
+            }
+
+            if ($fieldConfig['type'] === 'enum') {
+                $enumClass = $fieldConfig['class'];
+                if ($value === null || $value === '') {
+                    $entity->$setter(null);
+                } else {
+                    $enumValue = constant("$enumClass::$value");
+                    $entity->$setter($enumValue);
+                }
+                return;
+            }
         }
+
 
         if (in_array($field, ['fileLink', 'methodLink'])) {
             if ($value instanceof UploadedFile) {
