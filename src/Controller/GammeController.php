@@ -28,6 +28,7 @@ use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -46,16 +47,22 @@ class GammeController extends AbstractController
         private readonly ModelRepository $modelRepository,
         private readonly TreatmentProcessRepository $treatmentProcessRepository,
         private readonly FinishProcessRepository $finishProcessRepository,
+        private readonly RequestStack $requestStack,
     ) {
     }
 
     #[Route(name: 'app_gamme_preset', methods: ['GET'])]
-    public function preset(GlobalPreset $globalPreset): Response
+    public function preset(?GlobalPreset $globalPreset = null): Response
     {
+        $globalPreset ??= new GlobalPreset();
+
         $treatmentProcessForm = $this->createForm(TreatmentProcessAutocompleteType::class, null, [
-            'attr' => ['data-controller' => 'symfony--ux-autocomplete--autocomplete']
+            'data' => $globalPreset->getTreatmentPreset()?->getTreatmentProcesses()?->toArray() ?? []
         ]);
-        $finishProcessForm = $this->createForm(FinishProcessAutocompleteType::class, null)->createView();
+
+        $finishProcessForm = $this->createForm(FinishProcessAutocompleteType::class, null, [
+            'data' => $globalPreset->getFinishPreset()?->getFinishProcesses()?->toArray() ?? []
+        ]);
 
         return $this->render('gamme/index.html.twig', [
             'treatmentProcessForm' => $treatmentProcessForm,
@@ -226,6 +233,7 @@ class GammeController extends AbstractController
         $material = $data['material'] ?? null;
         $profil = $data['profil'] ?? null;
 
+
         if (!$name) {
             return $this->json(['error' => 'Nom manquant'], Response::HTTP_BAD_REQUEST);
         }
@@ -233,6 +241,7 @@ class GammeController extends AbstractController
         try {
             $preset = new Print3DPreset();
             $preset->setName($name);
+            $preset->setIsActive(true);
 
             if ($process) {
                 $preset->setPrint3dProcess($this->print3DProcessRepository->find($process));
@@ -259,81 +268,143 @@ class GammeController extends AbstractController
         }
     }
 
-    #[Route('/api/preset/save-treatment', name: 'app_gamme_save_treatment_preset', methods: ['POST'])]
+    #[Route('/preset/treatment/save', name: 'app_preset_treatment_save', methods: ['POST'])]
     public function saveTreatmentPreset(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         $name = $data['name'] ?? null;
         $processes = $data['processes'] ?? [];
 
-        if (!$name) {
-            return $this->json(['error' => 'Nom manquant'], Response::HTTP_BAD_REQUEST);
-        }
+        $preset = new TreatmentPreset();
+        $preset->setName($name);
+        $preset->setIsActive(true);
 
-        try {
-            $preset = new TreatmentPreset();
-            $preset->setName($name);
-            $preset->setIsActive(true);
-
-            // Gestion des processus avec ManyToMany
-            foreach ($processes as $processId) {
-                $process = $this->treatmentProcessRepository->find($processId);
-                if ($process) {
-                    $preset->addTreatmentProcess($process);
-                }
+        foreach ($processes as $processId) {
+            $process = $this->treatmentProcessRepository->find($processId);
+            if ($process) {
+                $preset->addTreatmentProcess($process);
             }
-
-            $this->entityManager->persist($preset);
-            $this->entityManager->flush();
-
-            return $this->json([
-                'success' => true,
-                'preset' => [
-                    'id' => $preset->getId(),
-                    'name' => $preset->getName()
-                ]
-            ]);
-        } catch (\Exception $e) {
-            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
+
+        $this->entityManager->persist($preset);
+        $this->entityManager->flush();
+
+        return new JsonResponse(['id' => $preset->getId()]);
     }
 
-    #[Route('/api/preset/save-finish', name: 'app_gamme_save_finish_preset', methods: ['POST'])]
+    #[Route('/preset/finish/save', name: 'app_preset_finish_save', methods: ['POST'])]
     public function saveFinishPreset(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         $name = $data['name'] ?? null;
         $processes = $data['processes'] ?? [];
 
-        if (!$name) {
-            return $this->json(['error' => 'Nom manquant'], Response::HTTP_BAD_REQUEST);
+        $preset = new FinishPreset();
+        $preset->setName($name);
+        $preset->setIsActive(true);
+
+        foreach ($processes as $processId) {
+            $process = $this->finishProcessRepository->find($processId);
+            if ($process) {
+                $preset->addFinishProcess($process);
+            }
+        }
+
+        $this->entityManager->persist($preset);
+        $this->entityManager->flush();
+
+        return new JsonResponse(['id' => $preset->getId()]);
+    }
+
+    #[Route('/preset/global/save', name: 'app_preset_global_save', methods: ['POST'])]
+    public function saveGlobalPreset(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        if (empty($data['name'])) {
+            return $this->json(['error' => 'Le nom est requis'], Response::HTTP_BAD_REQUEST);
         }
 
         try {
-            $preset = new FinishPreset();
-            $preset->setName($name);
-            $preset->setIsActive(true);
+            $globalPreset = new GlobalPreset();
+            $globalPreset->setName($data['name']);
+            $globalPreset->setIsActive(true);
 
-            // Gestion des processus avec ManyToMany
-            foreach ($processes as $processId) {
-                $process = $this->finishProcessRepository->find($processId);
-                if ($process) {
-                    $preset->addFinishProcess($process);
+            if (!empty($data['print3dPresetId'])) {
+                $print3dPreset = $this->print3DPresetRepository->find($data['print3dPresetId']);
+                if ($print3dPreset) {
+                    $globalPreset->setPrint3dPreset($print3dPreset);
                 }
             }
 
-            $this->entityManager->persist($preset);
+            if (!empty($data['treatmentPresetId'])) {
+                $treatmentPreset = $this->treatmentPresetRepository->find($data['treatmentPresetId']);
+                if ($treatmentPreset) {
+                    $globalPreset->setTreatmentPreset($treatmentPreset);
+                }
+            }
+
+            if (!empty($data['finishPresetId'])) {
+                $finishPreset = $this->finishPresetRepository->find($data['finishPresetId']);
+                if ($finishPreset) {
+                    $globalPreset->setFinishPreset($finishPreset);
+                }
+            }
+
+            $this->entityManager->persist($globalPreset);
             $this->entityManager->flush();
 
-            return $this->json([
-                'success' => true,
-                'preset' => [
-                    'id' => $preset->getId(),
-                    'name' => $preset->getName()
-                ]
-            ]);
+            return $this->json(['id' => $globalPreset->getId()]);
         } catch (\Exception $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }
+
+    #[Route('/api/preset/print3d/{id}/load', name: 'app_gamme_load_print3d_preset', methods: ['GET'])]
+    public function loadPrint3dPreset(Print3DPreset $preset): JsonResponse
+    {
+        return $this->json([
+            'print3dProcess' => $preset->getPrint3dProcess()?->getId(),
+            'print3dMaterial' => $preset->getPrint3dMaterial()?->getId(),
+            'slicerProfil' => $preset->getSlicerProfil()?->getId()
+        ]);
+    }
+
+    #[Route('/api/preset/treatment/{id}/load', name: 'app_gamme_load_treatment_preset', methods: ['GET'])]
+    public function loadTreatmentPreset(TreatmentPreset $preset): JsonResponse
+    {
+        $processes = $preset->getTreatmentProcesses()->map(function($process) {
+            return [
+                'value' => $process->getId(),
+                'text' => $process->getName()
+            ];
+        })->toArray();
+
+        return $this->json(['processes' => $processes]);
+    }
+
+    #[Route('/api/preset/finish/{id}/load', name: 'app_gamme_load_finish_preset', methods: ['GET'])]
+    public function loadFinishPreset(FinishPreset $preset): JsonResponse
+    {
+        $processes = $preset->getFinishProcesses()->map(function($process) {
+            return [
+                'value' => $process->getId(),
+                'text' => $process->getName()
+            ];
+        })->toArray();
+
+        return $this->json(['processes' => $processes]);
+    }
+
+    #[Route('/api/preset/global/{id}/load', name: 'app_gamme_load_global_preset', methods: ['GET'])]
+    public function loadGlobalPreset(GlobalPreset $preset): JsonResponse
+    {
+        return $this->json([
+            'print3dPreset' => $preset->getPrint3dPreset()?->getId(),
+            'treatmentPreset' => $preset->getTreatmentPreset()?->getId(),
+            'finishPreset' => $preset->getFinishPreset()?->getId()
+        ]);
+    }
+
+
 }

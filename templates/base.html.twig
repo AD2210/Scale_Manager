@@ -147,7 +147,7 @@
         </ul>
     </div>
     <!-- CONTENU PRINCIPAL -->
-    <div class="flex-grow-1">
+    <div class="flex-grow-1" {% block data_controller %}{% endblock %}>
         <!-- Barre contextuelle -->
         <div
             class="bg-light border-bottom page-header d-flex justify-content-between align-items-center py-3 px-4 sticky-top">
@@ -169,6 +169,5 @@
          style="z-index: 1100">
     </div>
 </div>
-
 </body>
 </html>

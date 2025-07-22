@@ -3,12 +3,10 @@
 namespace App\Form;
 
 use App\Entity\Process\TreatmentProcess;
-use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\UX\Autocomplete\Form\AsEntityAutocompleteField;
 use Symfony\UX\Autocomplete\Form\BaseEntityAutocompleteType;
-use Symfony\UX\Autocomplete\Form\ParentEntityAutocompleteType;
 
 #[AsEntityAutocompleteField]
 class TreatmentProcessAutocompleteType extends AbstractType
@@ -20,8 +18,7 @@ class TreatmentProcessAutocompleteType extends AbstractType
             'choice_label' => 'name',
             'multiple' => true,
             'label' => false,
-            'attr' => [
-                'data-controller' => 'symfony--ux-autocomplete--autocomplete',
+            'tom_select_options' => [
                 'placeholder' => 'Sélectionner ou créer des traitements'
             ],
             'query_builder' => function($repository) {

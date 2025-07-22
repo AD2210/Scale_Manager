@@ -2,6 +2,8 @@
 
 {% block title %}Gamme {{ project is defined ? project.title : globalPreset.name }}{% endblock %}
 
+{% block data_controller %}data-controller="gamme"{% endblock %}
+
 {% block page_header %}
     <div class="d-flex justify-content-between align-items-center w-100">
         <h1 class="h4 m-0">
@@ -11,7 +13,30 @@
                 Edition des Presets
             {% endif %}
         </h1>
-
+        {# Header avec navigation #}
+        <div class="row mb-2">
+            {% if project is defined %}
+                <div class="col-4 text-end">
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-outline-primary" {{ prevModel is null ? 'disabled' }}
+                                data-action="gamme#navigateModel"
+                            {# data-gamme-url-param="{{ path('app_gamme_project_file', {'projectId': project.id, 'fileId': prevModel.id}) }}"
+                            #}
+                        >
+                            <i class="bi bi-arrow-left"></i>
+                        </button>
+                        <span class="btn btn-outline-secondary">{{ currentIndex + 1 }}/{{ totalFiles }}</span>
+                        <button class="btn btn-outline-primary" {{ nextModel is null ? 'disabled' }}
+                                data-action="gamme#navigateModel"
+                            {# data-gamme-url-param="{{ path('app_gamme_project_file', {'projectId': project.id, 'fileId': nextModel.id}) }}"
+                            #}
+                        >
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
         {# Preset Global #}
         <div class="d-flex align-items-center" style="width: 30%;">
             <div class="input-group">
@@ -37,36 +62,13 @@
 
 {% block body %}
     <div class="container-fluid">
-        {# Header avec navigation #}
-        <div class="row mb-2">
-            {% if project is defined %}
-                <div class="col-4 text-end">
-                    <div class="btn-group" role="group">
-                        <button class="btn btn-outline-primary" {{ prevModel is null ? 'disabled' }}
-                                data-action="gamme#navigateModel"
-                            {# data-gamme-url-param="{{ path('app_gamme_project_file', {'projectId': project.id, 'fileId': prevModel.id}) }}"
-                            #}
-                        >
-                            <i class="bi bi-arrow-left"></i>
-                        </button>
-                        <span class="btn btn-outline-secondary">{{ currentIndex + 1 }}/{{ totalFiles }}</span>
-                        <button class="btn btn-outline-primary" {{ nextModel is null ? 'disabled' }}
-                                data-action="gamme#navigateModel"
-                            {# data-gamme-url-param="{{ path('app_gamme_project_file', {'projectId': project.id, 'fileId': nextModel.id}) }}"
-                            #}
-                        >
-                            <i class="bi bi-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-            {% endif %}
-        </div>
+        <input type="hidden" name="token" value="{{ csrf_token('preset_token') }}">
         {# Carte Impression 3D #}
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Impression 3D</h5>
                 <div class="input-group" style="width: auto;">
-                    <select class="form-select" data-action="gamme#loadPrint3DPreset">
+                    <select class="form-select" data-action="gamme#loadPrint3DPreset" data-gamme-field-param="print3dPreset">
                         <option value="">Sélectionner un preset</option>
                         {% for preset in print3dPresets %}
                             <option
@@ -154,7 +156,7 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Traitement</h5>
                 <div class="input-group" style="width: auto;">
-                    <select class="form-select" data-action="gamme#loadTreatmentPreset">
+                    <select class="form-select" data-action="gamme#loadTreatmentPreset" data-gamme-field-param="treatmentPreset">
                         <option value="">Sélectionner un preset</option>
                         {% for preset in treatmentPresets %}
                             <option
@@ -171,7 +173,13 @@
                 </div>
             </div>
             <div class="card-body">
-                {{ form_widget(treatmentProcessForm) }}
+                {{ form_widget(treatmentProcessForm, {
+                    'attr': {
+                        'data-gamme-target': 'treatmentSelect',
+                        'data-controller': 'symfony--ux-autocomplete--autocomplete'
+                    }
+                }) }}
+
             </div>
         </div>
 
@@ -180,7 +188,7 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Finition</h5>
                 <div class="input-group" style="width: auto;">
-                    <select class="form-select" data-action="gamme#loadFinishPreset">
+                    <select class="form-select" data-action="gamme#loadFinishPreset" data-gamme-field-param="finishPreset">
                         <option value="">Sélectionner un preset</option>
                         {% for preset in finishPresets %}
                             <option
@@ -197,7 +205,12 @@
                 </div>
             </div>
             <div class="card-body">
-                {{ form_widget(finishProcessForm) }}
+                {{ form_widget(finishProcessForm, {
+                    'attr': {
+                        'data-gamme-target': 'finishSelect',
+                        'data-controller': 'symfony--ux-autocomplete--autocomplete'
+                    }
+                }) }}
             </div>
         </div>
 
