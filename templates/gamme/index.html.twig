@@ -1,0 +1,263 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gamme {{ project is defined ? project.title : globalPreset.name }}{% endblock %}
+
+{% block page_header %}
+    <div class="d-flex justify-content-between align-items-center w-100">
+        <h1 class="h4 m-0">
+            {% if project is defined %}
+                {{ project.title }} - {{ model.fileName }}
+            {% else %}
+                Edition des Presets
+            {% endif %}
+        </h1>
+
+        {# Preset Global #}
+        <div class="d-flex align-items-center" style="width: 30%;">
+            <div class="input-group">
+                <select class="form-select" data-action="gamme#loadGlobalPreset">
+                    <option value="">Charger un preset global</option>
+                    {% for preset in globalPresets %}
+                        <option value="{{ preset.id }}" {{ globalPreset and globalPreset.id == preset.id ? 'selected' }}>
+                            {{ preset.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <input type="text" class="form-control" placeholder="Nouveau preset global"
+                       data-gamme-target="newGlobalPresetName">
+                <button class="btn btn-primary" data-action="gamme#saveGlobalPreset">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block body %}
+    <div class="container-fluid">
+        {# Header avec navigation #}
+        <div class="row mb-2">
+            {% if project is defined %}
+                <div class="col-4 text-end">
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-outline-primary" {{ prevModel is null ? 'disabled' }}
+                                data-action="gamme#navigateModel"
+                                {#data-gamme-url-param="{{ path('app_gamme_project_file', {'projectId': project.id, 'fileId': prevModel.id}) }}"
+                                #}
+                        >
+                            <i class="bi bi-arrow-left"></i>
+                        </button>
+                        <span class="btn btn-outline-secondary">{{ currentIndex + 1 }}/{{ totalFiles }}</span>
+                        <button class="btn btn-outline-primary" {{ nextModel is null ? 'disabled' }}
+                                data-action="gamme#navigateModel"
+                                {#data-gamme-url-param="{{ path('app_gamme_project_file', {'projectId': project.id, 'fileId': nextModel.id}) }}"
+                                #}
+                        >
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        {# Carte Impression 3D #}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Impression 3D</h5>
+                <div class="input-group" style="width: auto;">
+                    <select class="form-select" data-action="gamme#loadPrint3DPreset">
+                        <option value="">Sélectionner un preset</option>
+                        {% for preset in print3dPresets %}
+                            <option value="{{ preset.id }}" {{ print3dPreset and print3dPreset.id == preset.id ? 'selected' }}>
+                                {{ preset.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" class="form-control" placeholder="Nouveau preset"
+                           data-gamme-target="newPrint3DPresetName">
+                    <button class="btn btn-primary" data-action="gamme#savePrint3DPreset">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Process</label>
+                            <select class="form-select" data-action="gamme#updateField" data-gamme-field-param="print3dProcess">
+                                <option value="">Sélectionner un process</option>
+                                {% for process in print3dProcesses %}
+                                    <option value="{{ process.id }}" {{ print3dProcess and print3dProcess.id == process.id ? 'selected' }}>
+                                        {{ process.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Matériau</label>
+                            <select class="form-select" data-action="gamme#updateField" data-gamme-field-param="print3dMaterial">
+                                <option value="">Sélectionner un matériau</option>
+                                {% for material in print3dMaterials %}
+                                    <option value="{{ material.id }}" {{ print3dMaterial and print3dMaterial.id == material.id ? 'selected' }}>
+                                        {{ material.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Profil Slicer</label>
+                            <select class="form-select" data-action="gamme#updateField" data-gamme-field-param="slicerProfil">
+                                <option value="">Sélectionner un profil</option>
+                                {% for profil in slicerProfils %}
+                                    <option value="{{ profil.id }}" {{ slicerProfil and slicerProfil.id == profil.id ? 'selected' }}>
+                                        {{ profil.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% if project is defined %}
+                            <div class="mb-3">
+                                <label class="form-label">Quantité</label>
+                                <input type="number" class="form-control" value="{{ model.quantity }}"
+                                       data-action="gamme#updateField" data-gamme-field-param="quantity">
+                            </div>
+                            <div class="form-check mb-2">
+                                <input type="checkbox" class="form-check-input" id="isNeedSupport"
+                                       {{ model.isNeedSupport ? 'checked' }}
+                                       data-action="gamme#updateField" data-gamme-field-param="isNeedSupport">
+                                <label class="form-check-label" for="isNeedSupport">Support nécessaire</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input type="checkbox" class="form-check-input" id="isNeedTest"
+                                       {{ model.isNeedTest ? 'checked' }}
+                                       data-action="gamme#updateField" data-gamme-field-param="isNeedTest">
+                                <label class="form-check-label" for="isNeedTest">Test nécessaire</label>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {# Carte Traitement #}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Traitement</h5>
+                <div class="input-group" style="width: auto;">
+                    <select class="form-select" data-action="gamme#loadTreatmentPreset">
+                        <option value="">Sélectionner un preset</option>
+                        {% for preset in treatmentPresets %}
+                            <option value="{{ preset.id }}" {{ treatmentPreset and treatmentPreset.id == preset.id ? 'selected' }}>
+                                {{ preset.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" class="form-control" placeholder="Nouveau preset"
+                           data-gamme-target="newTreatmentPresetName">
+                    <button class="btn btn-primary" data-action="gamme#saveTreatmentPreset">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-row flex-wrap gap-2 align-items-start" data-gamme-target="treatmentProcessList">
+                    <div style="width: 20%;">
+                        <select class="form-select" data-action="gamme#updateTreatmentProcess" data-gamme-index-param="0">
+                            <option value="">Sélectionner un traitement</option>
+                            {% for process in treatmentProcesses %}
+                                <option value="{{ process.id }}">{{ process.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary" style="width: 20%;" data-action="gamme#addTreatmentProcess">
+                        <i class="fa-solid fa-plus"></i> Ajouter
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {# Carte Finition #}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Finition</h5>
+                <div class="input-group" style="width: auto;">
+                    <select class="form-select" data-action="gamme#loadFinishPreset">
+                        <option value="">Sélectionner un preset</option>
+                        {% for preset in finishPresets %}
+                            <option value="{{ preset.id }}" {{ finishPreset and finishPreset.id == preset.id ? 'selected' }}>
+                                {{ preset.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" class="form-control" placeholder="Nouveau preset"
+                           data-gamme-target="newFinishPresetName">
+                    <button class="btn btn-primary" data-action="gamme#saveFinishPreset">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-row flex-wrap gap-2 align-items-start" data-gamme-target="finishProcessList">
+                    <div style="width: 20%;">
+                        <select class="form-select" data-action="gamme#updateFinishProcess" data-gamme-index-param="0">
+                            <option value="">Sélectionner une finition</option>
+                            {% for process in finishProcesses %}
+                                <option value="{{ process.id }}">{{ process.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary" style="width: 20%;" data-action="gamme#addFinishProcess">
+                        <i class="fa-solid fa-plus"></i> Ajouter
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {% if project is defined %}
+            {# Carte Assemblage #}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Assemblage</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Nom de l'assemblage</label>
+                                <input type="text" class="form-control"
+                                       value="{{ model.assemblyProcess.Name }}"
+                                       data-action="gamme#updateField"
+                                       data-gamme-field-param="assemblyName">
+                            </div>
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="isSpecifique"
+                                    {{ model.assemblyProcess.isSpecific ? 'checked' }}
+                                       data-action="gamme#updateField"
+                                       data-gamme-field-param="isAssemblySpecifique">
+                                <label class="form-check-label" for="isSpecifique">Assemblage spécifique</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Commentaire</label>
+                                <textarea class="form-control"
+                                          data-action="gamme#updateField"
+                                          data-gamme-field-param="assemblyComment"
+                                          rows="3">{{ model.assemblyProcess.Comment }}</textarea>
+                            </div>
+                            {% if model.assemblyProcess.methodLink %}
+                                <div class="mb-3">
+                                    <a href="{{ model.assemblyProcess.methodLink }}" class="btn btn-outline-primary" target="_blank">
+                                        <i class="bi bi-file-earmark-text"></i> Voir la méthode
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
