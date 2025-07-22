@@ -1,0 +1,51 @@
+{% extends 'components/_table_wrapper.html.twig' %}
+
+{% set entityType = 'model' %}
+
+{% block title %}Traitement{% endblock %}
+
+{% block page_header %}
+    <h1 class="h4 mb-0">Traitement des pièces</h1>
+{% endblock %}
+
+{% block table_head %}
+    <tr>
+        <th>Fichier</th>
+        {% for process in treatmentProcesses %}
+            <th>{{ process.name }}</th>
+            <th class="text-center">Terminé</th>
+        {% endfor %}
+    </tr>
+{% endblock %}
+
+{% block table_rows %}
+    {% for item in items %}
+        <tr data-id="{{ item.id }}">
+            {% include 'components/_text_readonly.html.twig' with {
+                value: item.fileName
+            } %}
+
+            {% for process in treatmentProcesses %}
+                {% set operation = item.treatmentOperation|filter(op => op.treatmentProcess.id == process.id)|first %}
+
+                {% include 'components/editable/_dropdown_cell.html.twig' with {
+                    entityId: item.id,
+                    entityType: entityType,
+                    field: 'treatmentOperation',
+                    name: 'treatmentOperation-' ~ process.id,
+                    value: operation,
+                    items: treatmentOperations,
+                    multiple: false,
+                    placeholder: 'Aucun traitement'
+                } %}
+
+                {% include 'components/editable/_checkbox_cell.html.twig' with {
+                    value: operation,
+                    field: 'isDone',
+                    entityId: operation,
+                    entityType: 'treatmentOperation'
+                } %}
+            {% endfor %}
+        </tr>
+    {% endfor %}
+{% endblock %}

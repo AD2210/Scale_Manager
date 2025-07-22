@@ -11,6 +11,8 @@ use App\Repository\Base\SubContractorRepository;
 use App\Repository\Base\SlicerProfilRepository;
 use App\Repository\CustomerDataRepository;
 use App\Repository\ModelRepository;
+use App\Repository\Operation\FinishOperationRepository;
+use App\Repository\Operation\TreatmentOperationRepository;
 use App\Repository\Process\Print3DMaterialRepository;
 use App\Repository\Process\Print3DProcessRepository;
 use App\Repository\Process\TreatmentProcessRepository;
@@ -125,7 +127,7 @@ class ListController extends AbstractController
     }
 
     #[Route('/print3d/project{id}', name: 'app_print3d_list')]
-    public function list(
+    public function print3dList(
         Project $project,
         ModelRepository $modelRepository,
         Print3DProcessRepository $processRepository,
@@ -136,6 +138,34 @@ class ListController extends AbstractController
             'print3dProcesses' => $processRepository->findAll(),
             'print3dMaterials' => $materialRepository->findAll(),
             'print3dStatuses' => Print3DStatusEnum::cases(),
+        ]);
+    }
+
+    #[Route('/treatment/project{id}', name: 'app_treatment_list')]
+    public function treatmentList(
+        Project $project,
+        ModelRepository $modelRepository,
+        TreatmentProcessRepository $processRepository,
+        TreatmentOperationRepository $operationRepository,
+    ): Response {
+        return $this->render('treatment/list.html.twig', [
+            'items' => $modelRepository->findBy(['project' => $project]),
+            'treatmentProcesses' => $processRepository->findAll(),
+            'treatmentOperations' => $operationRepository->findAll(),
+        ]);
+    }
+
+    #[Route('/finish/project{id}', name: 'app_finish_list')]
+    public function finishList(
+        Project $project,
+        ModelRepository $modelRepository,
+        FinishProcessRepository $processRepository,
+        FinishOperationRepository $operationRepository,
+    ): Response {
+        return $this->render('finish/list.html.twig', [
+            'items' => $modelRepository->findBy(['project' => $project]),
+            'treatmentProcesses' => $processRepository->findAll(),
+            'treatmentOperations' => $operationRepository->findAll(),
         ]);
     }
 

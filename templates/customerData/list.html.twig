@@ -25,24 +25,14 @@
             } %}
 
             {% for software in softwares %}
-                {# Debug des opérations #}
-                <!-- Debug: Customer Data ID {{ item.id }} -->
-                <!-- Debug: Software ID {{ software.id }} -->
-                <!-- Debug: Operations count {{ item.customerDataOperations|length }} -->
-
                 {% set isDone = false %}
                 {% if item.customerDataOperations is not empty %}
                     {% for op in item.customerDataOperations %}
-                        <!-- Debug: Operation Software ID {{ op.software ? op.software.id : 'null' }} -->
-                        <!-- Debug: Operation isDone {{ op.isDone ? 'true' : 'false' }} -->
                         {% if op.software and op.software.id == software.id %}
-                            <!-- Debug: Set isDone value {{ isDone ? 'true' : 'false' }} -->
                             {% set isDone = op.isDone %}
                         {% endif %}
                     {% endfor %}
                 {% endif %}
-                <!-- Debug: Final isDone value {{ isDone ? 'true' : 'false' }} -->
-
 
                 {% include 'components/editable/_checkbox_cell.html.twig' with {
                     value: isDone,
