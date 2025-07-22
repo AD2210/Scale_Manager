@@ -405,6 +405,100 @@ class GammeController extends AbstractController
             'finishPreset' => $preset->getFinishPreset()?->getId()
         ]);
     }
+    #[Route('/api/preset/print3d/{id}/update', name: 'app_gamme_update_print3d_preset', methods: ['POST'])]
+    public function updatePrint3dPreset(Print3DPreset $preset, Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        if (isset($data['process'])) {
+            $preset->setPrint3dProcess($this->print3DProcessRepository->find($data['process']));
+        }
+        if (isset($data['material'])) {
+            $preset->setPrint3dMaterial($this->print3DMaterialRepository->find($data['material']));
+        }
+        if (isset($data['profil'])) {
+            $preset->setSlicerProfil($this->slicerProfilRepository->find($data['profil']));
+        }
+
+        $this->entityManager->flush();
+        return $this->json(['success' => true]);
+    }
+
+    #[Route('/preset/treatment/{id}/update', name: 'app_preset_treatment_update', methods: ['POST'])]
+    public function updateTreatmentPreset(TreatmentPreset $preset, Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $processes = $data['processes'] ?? [];
+
+        // Supprimer tous les processus existants
+        foreach ($preset->getTreatmentProcesses() as $process) {
+            $preset->removeTreatmentProcess($process);
+        }
+
+        // Ajouter les nouveaux processus
+        foreach ($processes as $processId) {
+            $process = $this->treatmentProcessRepository->find($processId);
+            if ($process) {
+                $preset->addTreatmentProcess($process);
+            }
+        }
+
+        $this->entityManager->flush();
+        return $this->json(['success' => true]);
+    }
+
+    #[Route('/preset/finish/{id}/update', name: 'app_preset_finish_update', methods: ['POST'])]
+    public function updateFinishPreset(FinishPreset $preset, Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $processes = $data['processes'] ?? [];
+
+        // Supprimer tous les processus existants
+        foreach ($preset->getFinishProcesses() as $process) {
+            $preset->removeFinishProcess($process);
+        }
+
+        // Ajouter les nouveaux processus
+        foreach ($processes as $processId) {
+            $process = $this->finishProcessRepository->find($processId);
+            if ($process) {
+                $preset->addFinishProcess($process);
+            }
+        }
+
+        $this->entityManager->flush();
+        return $this->json(['success' => true]);
+    }
+
+    #[Route('/preset/global/{id}/update', name: 'app_preset_global_update', methods: ['POST'])]
+    public function updateGlobalPreset(GlobalPreset $preset, Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        if (!empty($data['print3dPresetId'])) {
+            $print3dPreset = $this->print3DPresetRepository->find($data['print3dPresetId']);
+            $preset->setPrint3dPreset($print3dPreset);
+        } else {
+            $preset->setPrint3dPreset(null);
+        }
+
+        if (!empty($data['treatmentPresetId'])) {
+            $treatmentPreset = $this->treatmentPresetRepository->find($data['treatmentPresetId']);
+            $preset->setTreatmentPreset($treatmentPreset);
+        } else {
+            $preset->setTreatmentPreset(null);
+        }
+
+        if (!empty($data['finishPresetId'])) {
+            $finishPreset = $this->finishPresetRepository->find($data['finishPresetId']);
+            $preset->setFinishPreset($finishPreset);
+        } else {
+            $preset->setFinishPreset(null);
+        }
+
+        $this->entityManager->flush();
+        return $this->json(['success' => true]);
+    }
 
 
 }

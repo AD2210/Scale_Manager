@@ -181,7 +181,6 @@ export default class extends Controller {
         }
     }
 
-
     async loadTreatmentPresetData(presetId) {
         const response = await fetch(`/gamme/api/preset/treatment/${presetId}/load`);
         if (response.ok) {
@@ -233,21 +232,34 @@ export default class extends Controller {
 // Ajout de la méthode manquante pour Print3D
     async savePrint3DPreset(event) {
         const name = this.newPrint3DPresetNameTarget.value;
-        if (!name) return;
-        const token = document.querySelector('input[name="token"]').value;
+        const selectedPresetId = document.querySelector('select[data-gamme-field-param="print3dPreset"]').value;
 
-        const response = await fetch('/gamme/api/preset/save-print3d', {
+        // Si pas de nom mais un preset sélectionné, on met à jour le preset existant
+        if (!name && !selectedPresetId) return;
+
+        const token = document.querySelector('input[name="token"]').value;
+        const body = {
+            process: document.querySelector('[data-gamme-field-param="print3dProcess"]')?.value,
+            material: document.querySelector('[data-gamme-field-param="print3dMaterial"]')?.value,
+            profil: document.querySelector('[data-gamme-field-param="slicerProfil"]')?.value
+        };
+
+        // Si on a un nom, on l'ajoute au body
+        if (name) {
+            body.name = name;
+        }
+
+        const url = selectedPresetId && !name
+            ? `/gamme/api/preset/print3d/${selectedPresetId}/update`
+            : '/gamme/api/preset/save-print3d';
+
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': token
             },
-            body: JSON.stringify({
-                name: name,
-                process: document.querySelector('[data-gamme-field-param="print3dProcess"]')?.value,
-                material: document.querySelector('[data-gamme-field-param="print3dMaterial"]')?.value,
-                profil: document.querySelector('[data-gamme-field-param="slicerProfil"]')?.value
-            })
+            body: JSON.stringify(body)
         });
 
         if (response.ok) {
@@ -257,20 +269,26 @@ export default class extends Controller {
 
     async saveTreatmentPreset(event) {
         const name = this.newTreatmentPresetNameTarget.value;
-        if (!name) return;
+        const selectedPresetId = document.querySelector('select[data-gamme-field-param="treatmentPreset"]').value;
+
+        if (!name && !selectedPresetId) return;
 
         const token = document.querySelector('input[name="token"]').value;
         const processes = Array.from(document.querySelector('[name="treatment_process_autocomplete[]"]').selectedOptions)
             .map(option => option.value);
 
-        const response = await fetch('/gamme/preset/treatment/save', {
+        const url = selectedPresetId && !name
+            ? `/gamme/preset/treatment/${selectedPresetId}/update`
+            : '/gamme/preset/treatment/save';
+
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': token
             },
             body: JSON.stringify({
-                name: name,
+                name: name || undefined,
                 processes: processes
             })
         });
@@ -282,20 +300,26 @@ export default class extends Controller {
 
     async saveFinishPreset(event) {
         const name = this.newFinishPresetNameTarget.value;
-        if (!name) return;
+        const selectedPresetId = document.querySelector('select[data-gamme-field-param="finishPreset"]').value;
+
+        if (!name && !selectedPresetId) return;
 
         const token = document.querySelector('input[name="token"]').value;
         const processes = Array.from(document.querySelector('[name="finish_process_autocomplete[]"]').selectedOptions)
             .map(option => option.value);
 
-        const response = await fetch('/gamme/preset/finish/save', {
+        const url = selectedPresetId && !name
+            ? `/gamme/preset/finish/${selectedPresetId}/update`
+            : '/gamme/preset/finish/save';
+
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': token
             },
             body: JSON.stringify({
-                name: name,
+                name: name || undefined,
                 processes: processes
             })
         });
@@ -307,23 +331,27 @@ export default class extends Controller {
 
     async saveGlobalPreset(event) {
         const name = this.newGlobalPresetNameTarget.value;
-        if (!name) return;
+        const selectedPresetId = document.querySelector('select[data-action="gamme#loadGlobalPreset"]').value;
+
+        if (!name && !selectedPresetId) return;
 
         const token = document.querySelector('input[name="token"]').value;
-
-        // Récupérer les valeurs des presets sélectionnés
         const print3dPreset = document.querySelector('select[data-gamme-field-param="print3dPreset"]')?.value;
         const treatmentPreset = document.querySelector('select[data-gamme-field-param="treatmentPreset"]')?.value;
         const finishPreset = document.querySelector('select[data-gamme-field-param="finishPreset"]')?.value;
 
-        const response = await fetch('/gamme/preset/global/save', {
+        const url = selectedPresetId && !name
+            ? `/gamme/preset/global/${selectedPresetId}/update`
+            : '/gamme/preset/global/save';
+
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': token
             },
             body: JSON.stringify({
-                name,
+                name: name || undefined,
                 print3dPresetId: print3dPreset || null,
                 treatmentPresetId: treatmentPreset || null,
                 finishPresetId: finishPreset || null
