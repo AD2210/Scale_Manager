@@ -12,12 +12,15 @@ export default class extends Controller {
     ];
 
     connect() {
+        console.log('gamme #connect');
         // On récupère la route actuelle
         this.currentRoute = window.location.pathname;
         this.isPresetRoute = !this.currentRoute.includes('/project/');
     }
 
+    // Methode pour la Mise à jour des champs inline et au chargement des presets
     async updateField(event) {
+        console.log('gamme #updateField');
         const field = event.target.dataset.gammeFieldParam;
         let value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
 
@@ -40,7 +43,6 @@ export default class extends Controller {
             if (!matches) return;
 
             const projectId = matches[1];
-            const currentIndex = new URLSearchParams(window.location.search).get('index') || '0';
 
             // Récupérer le modèle actuel
             const model = document.querySelector('[data-model-id]');
@@ -69,14 +71,22 @@ export default class extends Controller {
             if (!response.ok) {
                 const error = await response.json();
                 console.error('Erreur lors de la mise à jour:', error);
+                document.dispatchEvent(new CustomEvent('toast:error', {
+                    detail: {message: 'Erreur lors de la mise à jour' }
+                }));
             }
+
         } catch (error) {
             console.error('Erreur lors de la requête:', error);
+            document.dispatchEvent(new CustomEvent('toast:error', {
+                detail: {message: 'Erreur lors de la requête' }
+            }));
         }
-
     }
 
+    // Methode de chargement des Presets
     async loadPrint3DPreset(event) {
+        console.log('gamme#loadPrint3DPreset');
         if (!event.target.value) return;
 
         const response = await fetch(`/gamme/api/preset/print3d/${event.target.value}/load`);
@@ -111,6 +121,7 @@ export default class extends Controller {
     }
 
     async loadTreatmentPreset(event) {
+        console.log('gamme#loadTreatmentPreset');
         if (!event.target.value) return;
         try {
             const response = await fetch(`/gamme/api/preset/treatment/${event.target.value}/load`);
@@ -153,10 +164,15 @@ export default class extends Controller {
             }
         } catch (error) {
             console.error('Erreur lors du chargement du preset:', error);
+            document.dispatchEvent(new CustomEvent('toast:error', {
+                detail: { message: 'Erreur lors du chargement du preset' }
+            }));
+
         }
     }
 
     async loadFinishPreset(event) {
+        console.log('gamme#loadFinishPreset');
         if (!event.target.value) return;
 
         try {
@@ -200,11 +216,15 @@ export default class extends Controller {
             }
         } catch (error) {
             console.error('Erreur lors du chargement du preset de finition:', error);
+            document.dispatchEvent(new CustomEvent('toast:error', {
+                detail: { message: 'Erreur lors du chargement du preset' }
+            }));
+
         }
     }
 
-
     async loadGlobalPreset(event) {
+        console.log('gamme#loadGlobalPreset');
         if (!event.target.value) return;
 
         try {
@@ -250,19 +270,16 @@ export default class extends Controller {
             }
         } catch (error) {
             console.error('Erreur lors du chargement du preset global:', error);
+            document.dispatchEvent(new CustomEvent('toast:error', {
+                detail: { message: 'Erreur lors du chargement du preset 3D' }
+            }));
+
         }
     }
 
-    // Méthode utilitaire pour mettre à jour les valeurs des selects
-    updateSelectValue(type, value) {
-        const select = document.querySelector(`select[data-action="gamme#load${type.charAt(0).toUpperCase() + type.slice(1)}Preset"]`);
-        if (select) {
-            select.value = value || '';
-        }
-    }
-
-    // Méthodes pour charger les données des sous-presets
+    // Méthodes pour charger les données des sous-presets lors d'un chargement global
     async loadPrint3DPresetData(presetId) {
+        console.log('gamme#loadPrint3DPresetData');
         // Créer un événement synthétique
         const event = {
             target: document.querySelector('select[data-gamme-field-param="print3dPreset"]')
@@ -277,6 +294,7 @@ export default class extends Controller {
     }
 
     async loadTreatmentPresetData(presetId) {
+        console.log('gamme#loadTreatmentPresetData');
         const response = await fetch(`/gamme/api/preset/treatment/${presetId}/load`);
         if (response.ok) {
             const data = await response.json();
@@ -302,6 +320,7 @@ export default class extends Controller {
     }
 
     async loadFinishPresetData(presetId) {
+        console.log('gamme#loadFinishPresetData');
         const response = await fetch(`/gamme/api/preset/finish/${presetId}/load`);
         if (response.ok) {
             const data = await response.json();
@@ -326,12 +345,13 @@ export default class extends Controller {
         }
     }
 
-// Ajout de la méthode manquante pour Print3D
+// Methodes de sauvegarde des preset
     async savePrint3DPreset(event) {
+        console.log('gamme#savePrint3DPreset');
         const name = this.newPrint3DPresetNameTarget.value;
         const selectedPresetId = document.querySelector('select[data-gamme-field-param="print3dPreset"]').value;
 
-        // Si pas de nom mais un preset sélectionné, on met à jour le preset existant
+        // Si pas de nom, mais un preset sélectionné, on met à jour le preset existant
         if (!name && !selectedPresetId) return;
 
         const token = document.querySelector('input[name="token"]').value;
@@ -361,10 +381,14 @@ export default class extends Controller {
 
         if (response.ok) {
             //window.location.reload();
+            document.dispatchEvent(new CustomEvent('toast:success', {
+                detail: { message: 'Preset impression 3D sauvegardé avec succès' }
+            }));
         }
     }
 
     async saveTreatmentPreset(event) {
+        console.log('gamme#saveTreatmentPreset');
         const name = this.newTreatmentPresetNameTarget.value;
         const selectedPresetId = document.querySelector('select[data-gamme-field-param="treatmentPreset"]').value;
 
@@ -392,10 +416,14 @@ export default class extends Controller {
 
         if (response.ok) {
             //window.location.reload();
+            document.dispatchEvent(new CustomEvent('toast:success', {
+                detail: { message: 'Preset traitement sauvegardé avec succès' }
+            }));
         }
     }
 
     async saveFinishPreset(event) {
+        console.log('gamme#saveFinishPreset');
         const name = this.newFinishPresetNameTarget.value;
         const selectedPresetId = document.querySelector('select[data-gamme-field-param="finishPreset"]').value;
 
@@ -423,10 +451,14 @@ export default class extends Controller {
 
         if (response.ok) {
             //window.location.reload();
+            document.dispatchEvent(new CustomEvent('toast:success', {
+                detail: { message: 'Preset finition sauvegardé avec succès' }
+            }));
         }
     }
 
     async saveGlobalPreset(event) {
+        console.log('gamme#saveGlobalPreset');
         const name = this.newGlobalPresetNameTarget.value;
         const selectedPresetId = document.querySelector('select[data-action="gamme#loadGlobalPreset"]').value;
 
@@ -457,13 +489,21 @@ export default class extends Controller {
 
         if (response.ok) {
             //window.location.reload();
+            document.dispatchEvent(new CustomEvent('toast:success', {
+                detail: { message: 'Preset global sauvegardé avec succès' }
+            }));
         } else {
             const errorData = await response.json();
             console.error('Erreur lors de la sauvegarde:', errorData);
+            document.dispatchEvent(new CustomEvent('toast:error', {
+                detail: { message: 'Erreur lors du chargement du preset' }
+            }));
         }
     }
 
+    // Handler pour champ tomSelect
     async handleTomSelectChange(event) {
+        console.log('gamme#handleTomSelectChange');
         await this.updateField({
             target: {
                 dataset: { gammeFieldParam: event.target.dataset.gammeFieldParam },
@@ -472,5 +512,4 @@ export default class extends Controller {
             }
         });
     }
-
 }
