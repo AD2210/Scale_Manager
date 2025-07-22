@@ -2,6 +2,7 @@
 
 namespace App\Entity\Process;
 
+use App\Entity\Preset\Print3DPreset;
 use App\Repository\Process\Print3DProcessRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -33,10 +34,17 @@ class Print3DProcess
     #[ORM\ManyToMany(targetEntity: FinishProcess::class)]
     private Collection $finishProcess;
 
+    /**
+     * @var Collection<int, Print3DPreset>
+     */
+    #[ORM\OneToMany(targetEntity: Print3DPreset::class, mappedBy: 'print3dProcess')]
+    private Collection $print3DPresets;
+
     public function __construct()
     {
         $this->treatmentProcess = new ArrayCollection();
         $this->finishProcess = new ArrayCollection();
+        $this->print3DPresets = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -143,6 +151,36 @@ class Print3DProcess
     public function removeFinishProcess(FinishProcess $finishProcess): static
     {
         $this->finishProcess->removeElement($finishProcess);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Print3DPreset>
+     */
+    public function getPrint3DPresets(): Collection
+    {
+        return $this->print3DPresets;
+    }
+
+    public function addPrint3DPreset(Print3DPreset $print3DPreset): static
+    {
+        if (!$this->print3DPresets->contains($print3DPreset)) {
+            $this->print3DPresets->add($print3DPreset);
+            $print3DPreset->setPrint3dProcess($this);
+        }
+
+        return $this;
+    }
+
+    public function removePrint3DPreset(Print3DPreset $print3DPreset): static
+    {
+        if ($this->print3DPresets->removeElement($print3DPreset)) {
+            // set the owning side to null (unless already changed)
+            if ($print3DPreset->getPrint3dProcess() === $this) {
+                $print3DPreset->setPrint3dProcess(null);
+            }
+        }
 
         return $this;
     }

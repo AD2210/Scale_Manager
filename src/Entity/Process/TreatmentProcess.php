@@ -2,7 +2,10 @@
 
 namespace App\Entity\Process;
 
+use App\Entity\Preset\TreatmentPreset;
 use App\Repository\Process\TreatmentProcessRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TreatmentProcessRepository::class)]
@@ -18,6 +21,17 @@ class TreatmentProcess
 
     #[ORM\Column]
     private ?bool $isActive = null;
+
+    /**
+     * @var Collection<int, TreatmentPreset>
+     */
+    #[ORM\ManyToMany(targetEntity: TreatmentPreset::class, mappedBy: 'treatmentProcesses')]
+    private Collection $treatmentPresets;
+
+    public function __construct()
+    {
+        $this->treatmentPresets = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -47,6 +61,33 @@ class TreatmentProcess
             $isActive = false;
         }
         $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TreatmentPreset>
+     */
+    public function getTreatmentPresets(): Collection
+    {
+        return $this->treatmentPresets;
+    }
+
+    public function addTreatmentPreset(TreatmentPreset $treatmentPreset): static
+    {
+        if (!$this->treatmentPresets->contains($treatmentPreset)) {
+            $this->treatmentPresets->add($treatmentPreset);
+            $treatmentPreset->addTreatmentProcess($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTreatmentPreset(TreatmentPreset $treatmentPreset): static
+    {
+        if ($this->treatmentPresets->removeElement($treatmentPreset)) {
+            $treatmentPreset->removeTreatmentProcess($this);
+        }
 
         return $this;
     }

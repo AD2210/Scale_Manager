@@ -2,6 +2,7 @@
 
 namespace App\Entity\Preset;
 
+use App\Entity\Process\TreatmentProcess;
 use App\Repository\Preset\TreatmentPresetRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -27,9 +28,16 @@ class TreatmentPreset
     #[ORM\Column]
     private ?bool $isActive = null;
 
+    /**
+     * @var Collection<int, TreatmentProcess>
+     */
+    #[ORM\ManyToMany(targetEntity: TreatmentProcess::class, inversedBy: 'treatmentPresets')]
+    private Collection $treatmentProcesses;
+
     public function __construct()
     {
         $this->globalPresets = new ArrayCollection();
+        $this->treatmentProcesses = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -87,6 +95,30 @@ class TreatmentPreset
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TreatmentProcess>
+     */
+    public function getTreatmentProcesses(): Collection
+    {
+        return $this->treatmentProcesses;
+    }
+
+    public function addTreatmentProcess(TreatmentProcess $treatmentProcess): static
+    {
+        if (!$this->treatmentProcesses->contains($treatmentProcess)) {
+            $this->treatmentProcesses->add($treatmentProcess);
+        }
+
+        return $this;
+    }
+
+    public function removeTreatmentProcess(TreatmentProcess $treatmentProcess): static
+    {
+        $this->treatmentProcesses->removeElement($treatmentProcess);
 
         return $this;
     }
