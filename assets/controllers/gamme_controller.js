@@ -19,7 +19,11 @@ export default class extends Controller {
 
     async updateField(event) {
         const field = event.target.dataset.gammeFieldParam;
-        const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
+        let value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
+
+        if (event.target.tomselect) {
+            value = event.target.tomselect.getValue();
+        }
 
         // Si c'est une route preset, on vérifie qu'on a bien un ID
         if (this.isPresetRoute) {
@@ -31,25 +35,45 @@ export default class extends Controller {
 
         let url;
         if (!this.isPresetRoute) {
-            const [, , projectId, , fileId] = this.currentRoute.split('/');
+            // Récupérer les IDs du projet et du fichier depuis l'URL
+            const matches = this.currentRoute.match(/\/project\/(\d+)\/file.*?/);
+            if (!matches) return;
+
+            const projectId = matches[1];
+            const currentIndex = new URLSearchParams(window.location.search).get('index') || '0';
+
+            // Récupérer le modèle actuel
+            const model = document.querySelector('[data-model-id]');
+            const fileId = model ? model.dataset.modelId : null;
+
+            if (!fileId) {
+                console.error('ID du modèle non trouvé');
+                return;
+            }
             url = `/gamme/api/project/${projectId}/file/${fileId}/update`;
         } else {
             const presetId = new URLSearchParams(window.location.search).get('id');
             url = `/gamme/api/preset/${presetId}/update`;
         }
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': token
-            },
-            body: JSON.stringify({field, value})
-        });
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': token
+                },
+                body: JSON.stringify({field, value})
+            });
 
-        if (!response.ok) {
-            console.error('Erreur lors de la mise à jour');
+            if (!response.ok) {
+                const error = await response.json();
+                console.error('Erreur lors de la mise à jour:', error);
+            }
+        } catch (error) {
+            console.error('Erreur lors de la requête:', error);
         }
+
     }
 
     async loadPrint3DPreset(event) {
@@ -58,15 +82,33 @@ export default class extends Controller {
         const response = await fetch(`/gamme/api/preset/print3d/${event.target.value}/load`);
         if (response.ok) {
             const data = await response.json();
-            // Mise à jour des champs
-            document.querySelectorAll('select[data-gamme-field-param]').forEach(select => {
-                if (data[select.dataset.gammeFieldParam]) {
-                    select.value = data[select.dataset.gammeFieldParam];
+
+            // Mettre à jour le preset dans le modèle
+            await this.updateField({
+                target: {
+                    dataset: { gammeFieldParam: 'print3dPreset' },
+                    value: event.target.value
                 }
             });
+
+            // Mise à jour des champs
+            for (const [field, value] of Object.entries(data)) {
+                if (value) {
+                    const element = document.querySelector(`[data-gamme-field-param="${field}"]`);
+                    if (element) {
+                        element.value = value;
+                        // Déclencher la mise à jour pour chaque champ
+                        await this.updateField({
+                            target: {
+                                dataset: { gammeFieldParam: field },
+                                value: value
+                            }
+                        });
+                    }
+                }
+            }
         }
     }
-
 
     async loadTreatmentPreset(event) {
         if (!event.target.value) return;
@@ -74,6 +116,15 @@ export default class extends Controller {
             const response = await fetch(`/gamme/api/preset/treatment/${event.target.value}/load`);
             if (response.ok) {
                 const data = await response.json();
+
+                // Mettre à jour le preset dans le modèle
+                await this.updateField({
+                    target: {
+                        dataset: { gammeFieldParam: 'treatmentPreset' },
+                        value: event.target.value
+                    }
+                });
+
                 if (this.treatmentSelectTarget) {
                     const autocompleteController = this.application.getControllerForElementAndIdentifier(
                         this.treatmentSelectTarget,
@@ -81,7 +132,6 @@ export default class extends Controller {
                     );
 
                     if (autocompleteController) {
-                        // Mettre à jour les valeurs sélectionnées
                         autocompleteController.tomSelect.clear();
                         data.processes.forEach(process => {
                             autocompleteController.tomSelect.addOption({
@@ -89,6 +139,14 @@ export default class extends Controller {
                                 text: process.text
                             });
                             autocompleteController.tomSelect.addItem(process.value);
+                        });
+
+                        // Mettre à jour les opérations dans le modèle
+                        await this.updateField({
+                            target: {
+                                dataset: { gammeFieldParam: 'treatmentOperations' },
+                                value: data.processes.map(p => p.value)
+                            }
                         });
                     }
                 }
@@ -102,6 +160,14 @@ export default class extends Controller {
         if (!event.target.value) return;
 
         try {
+            // Mettre à jour le preset dans le modèle
+            await this.updateField({
+                target: {
+                    dataset: { gammeFieldParam: 'finishPreset' },
+                    value: event.target.value
+                }
+            });
+
             const response = await fetch(`/gamme/api/preset/finish/${event.target.value}/load`);
             if (response.ok) {
                 const data = await response.json();
@@ -121,28 +187,57 @@ export default class extends Controller {
                             });
                             autocompleteController.tomSelect.addItem(process.value);
                         });
+
+                        // Mettre à jour les opérations dans le modèle
+                        await this.updateField({
+                            target: {
+                                dataset: { gammeFieldParam: 'finishOperations' },
+                                value: data.processes.map(p => p.value)
+                            }
+                        });
                     }
                 }
             }
         } catch (error) {
-            console.error('Erreur lors du chargement du preset:', error);
+            console.error('Erreur lors du chargement du preset de finition:', error);
         }
     }
+
 
     async loadGlobalPreset(event) {
         if (!event.target.value) return;
 
         try {
+            // Mettre à jour le preset global dans le modèle
+            await this.updateField({
+                target: {
+                    dataset: { gammeFieldParam: 'globalPreset' },
+                    value: event.target.value
+                }
+            });
+
             const response = await fetch(`/gamme/api/preset/global/${event.target.value}/load`);
             if (response.ok) {
                 const data = await response.json();
 
                 // Mettre à jour les sélecteurs de presets
-                this.updateSelectValue('print3d', data.print3dPreset);
-                this.updateSelectValue('treatment', data.treatmentPreset);
-                this.updateSelectValue('finish', data.finishPreset);
+                for (const [type, presetId] of Object.entries({
+                    'print3d': data.print3dPreset,
+                    'treatment': data.treatmentPreset,
+                    'finish': data.finishPreset
+                })) {
+                    if (presetId) {
+                        const select = document.querySelector(`select[data-gamme-field-param="${type}Preset"]`);
+                        if (select) {
+                            select.value = presetId;
+                            // Déclencher le chargement du preset correspondant
+                            const event = new Event('change');
+                            select.dispatchEvent(event);
+                        }
+                    }
+                }
 
-                // Charger les données des sous-presets
+                // Mettre à jour tous les champs
                 if (data.print3dPreset) {
                     await this.loadPrint3DPresetData(data.print3dPreset);
                 }
@@ -198,8 +293,9 @@ export default class extends Controller {
                             value: process.value,
                             text: process.text
                         });
-                        autocompleteController.tomSelect.addItem(process.value);
                     });
+                    // Ajouter tous les éléments d'un coup
+                    autocompleteController.tomSelect.addItems(data.processes.map(p => p.value));
                 }
             }
         }
@@ -222,8 +318,9 @@ export default class extends Controller {
                             value: process.value,
                             text: process.text
                         });
-                        autocompleteController.tomSelect.addItem(process.value);
                     });
+                    // Ajouter tous les éléments d'un coup
+                    autocompleteController.tomSelect.addItems(data.processes.map(p => p.value));
                 }
             }
         }
@@ -263,7 +360,7 @@ export default class extends Controller {
         });
 
         if (response.ok) {
-            window.location.reload();
+            //window.location.reload();
         }
     }
 
@@ -294,7 +391,7 @@ export default class extends Controller {
         });
 
         if (response.ok) {
-            window.location.reload();
+            //window.location.reload();
         }
     }
 
@@ -325,7 +422,7 @@ export default class extends Controller {
         });
 
         if (response.ok) {
-            window.location.reload();
+            //window.location.reload();
         }
     }
 
@@ -359,10 +456,21 @@ export default class extends Controller {
         });
 
         if (response.ok) {
-            window.location.reload();
+            //window.location.reload();
         } else {
             const errorData = await response.json();
             console.error('Erreur lors de la sauvegarde:', errorData);
         }
     }
+
+    async handleTomSelectChange(event) {
+        await this.updateField({
+            target: {
+                dataset: { gammeFieldParam: event.target.dataset.gammeFieldParam },
+                tomselect: event.target.tomselect,
+                value: event.target.tomselect.getValue()
+            }
+        });
+    }
+
 }

@@ -2,7 +2,8 @@
 
 {% block title %}Gamme {{ project is defined ? project.title : globalPreset.name }}{% endblock %}
 
-{% block data_controller %}data-controller="gamme"{% endblock %}
+{% block data_controller %}data-controller="gamme" {% if model is defined %}data-model-id="{{ model.id }}"{% endif %}
+{% endblock %}
 
 {% block page_header %}
     <div class="d-flex justify-content-between align-items-center w-100">
@@ -18,21 +19,23 @@
             {% if project is defined %}
                 <div class="col-4 text-end">
                     <div class="btn-group" role="group">
-                        <button class="btn btn-outline-primary" {{ prevModel is null ? 'disabled' }}
-                                data-action="gamme#navigateModel"
-                            {# data-gamme-url-param="{{ path('app_gamme_project_file', {'projectId': project.id, 'fileId': prevModel.id}) }}"
-                            #}
-                        >
-                            <i class="bi bi-arrow-left"></i>
-                        </button>
-                        <span class="btn btn-outline-secondary">{{ currentIndex + 1 }}/{{ totalFiles }}</span>
-                        <button class="btn btn-outline-primary" {{ nextModel is null ? 'disabled' }}
-                                data-action="gamme#navigateModel"
-                            {# data-gamme-url-param="{{ path('app_gamme_project_file', {'projectId': project.id, 'fileId': nextModel.id}) }}"
-                            #}
-                        >
-                            <i class="bi bi-arrow-right"></i>
-                        </button>
+                        <a href="{{ path('app_gamme_project_file', {
+                            'id': project.id,
+                            'index': pagination.prev
+                        }) }}"
+                           class="btn btn-outline-primary {{ pagination.prev is null ? 'disabled' }}">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </a>
+                        <span class="btn btn-outline-secondary">
+                {{ pagination.current + 1 }}/{{ pagination.total }}
+            </span>
+                        <a href="{{ path('app_gamme_project_file', {
+                            'id': project.id,
+                            'index': pagination.next
+                        }) }}"
+                           class="btn btn-outline-primary {{ pagination.next is null ? 'disabled' }}">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
                     </div>
                 </div>
             {% endif %}
@@ -68,7 +71,8 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Impression 3D</h5>
                 <div class="input-group" style="width: auto;">
-                    <select class="form-select" data-action="gamme#loadPrint3DPreset" data-gamme-field-param="print3dPreset">
+                    <select class="form-select" data-action="gamme#loadPrint3DPreset"
+                            data-gamme-field-param="print3dPreset">
                         <option value="">Sélectionner un preset</option>
                         {% for preset in print3dPresets %}
                             <option
@@ -156,7 +160,8 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Traitement</h5>
                 <div class="input-group" style="width: auto;">
-                    <select class="form-select" data-action="gamme#loadTreatmentPreset" data-gamme-field-param="treatmentPreset">
+                    <select class="form-select" data-action="gamme#loadTreatmentPreset"
+                            data-gamme-field-param="treatmentPreset">
                         <option value="">Sélectionner un preset</option>
                         {% for preset in treatmentPresets %}
                             <option
@@ -176,10 +181,11 @@
                 {{ form_widget(treatmentProcessForm, {
                     'attr': {
                         'data-gamme-target': 'treatmentSelect',
+                        'data-gamme-field-param': 'treatmentOperations',
+                        'data-action': 'change->gamme#handleTomSelectChange',
                         'data-controller': 'symfony--ux-autocomplete--autocomplete'
                     }
                 }) }}
-
             </div>
         </div>
 
@@ -188,7 +194,8 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Finition</h5>
                 <div class="input-group" style="width: auto;">
-                    <select class="form-select" data-action="gamme#loadFinishPreset" data-gamme-field-param="finishPreset">
+                    <select class="form-select" data-action="gamme#loadFinishPreset"
+                            data-gamme-field-param="finishPreset">
                         <option value="">Sélectionner un preset</option>
                         {% for preset in finishPresets %}
                             <option
@@ -208,14 +215,16 @@
                 {{ form_widget(finishProcessForm, {
                     'attr': {
                         'data-gamme-target': 'finishSelect',
+                        'data-gamme-field-param': 'finishOperations',
+                        'data-action': 'change->gamme#handleTomSelectChange',
                         'data-controller': 'symfony--ux-autocomplete--autocomplete'
                     }
                 }) }}
             </div>
         </div>
 
-        {% if project is defined %}
-            {# Carte Assemblage #}
+        {# {% if project is defined %}
+             Carte Assemblage
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Assemblage</h5>
@@ -226,7 +235,7 @@
                             <div class="mb-3">
                                 <label class="form-label">Nom de l'assemblage</label>
                                 <input type="text" class="form-control"
-                                       value="{{ model.assemblyProcess.Name }}"
+                                       value="{{ model.assemblyProcess.name }}"
                                        data-action="gamme#updateField"
                                        data-gamme-field-param="assemblyName">
                             </div>
@@ -258,6 +267,6 @@
                     </div>
                 </div>
             </div>
-        {% endif %}
+        {% endif %} #}
     </div>
 {% endblock %}

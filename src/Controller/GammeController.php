@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Model;
+use App\Entity\Operation\FinishOperation;
+use App\Entity\Operation\TreatmentOperation;
 use App\Entity\Preset\FinishPreset;
 use App\Entity\Preset\GlobalPreset;
 use App\Entity\Preset\Print3DPreset;
@@ -28,7 +30,6 @@ use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -36,19 +37,19 @@ use Symfony\Component\Routing\Attribute\Route;
 class GammeController extends AbstractController
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly GlobalPresetRepository $globalPresetRepository,
-        private readonly Print3DPresetRepository $print3DPresetRepository,
-        private readonly TreatmentPresetRepository $treatmentPresetRepository,
-        private readonly FinishPresetRepository $finishPresetRepository,
-        private readonly Print3DProcessRepository $print3DProcessRepository,
-        private readonly Print3DMaterialRepository $print3DMaterialRepository,
-        private readonly SlicerProfilRepository $slicerProfilRepository,
-        private readonly ModelRepository $modelRepository,
+        private readonly EntityManagerInterface     $entityManager,
+        private readonly GlobalPresetRepository     $globalPresetRepository,
+        private readonly Print3DPresetRepository    $print3DPresetRepository,
+        private readonly TreatmentPresetRepository  $treatmentPresetRepository,
+        private readonly FinishPresetRepository     $finishPresetRepository,
+        private readonly Print3DProcessRepository   $print3DProcessRepository,
+        private readonly Print3DMaterialRepository  $print3DMaterialRepository,
+        private readonly SlicerProfilRepository     $slicerProfilRepository,
+        private readonly ModelRepository            $modelRepository,
         private readonly TreatmentProcessRepository $treatmentProcessRepository,
-        private readonly FinishProcessRepository $finishProcessRepository,
-        private readonly RequestStack $requestStack,
-    ) {
+        private readonly FinishProcessRepository    $finishProcessRepository,
+    )
+    {
     }
 
     #[Route(name: 'app_gamme_preset', methods: ['GET'])]
@@ -88,23 +89,55 @@ class GammeController extends AbstractController
         ]);
     }
 
-    #[Route('/project/{projectId}/file/{fileId}', name: 'app_gamme_project_file', methods: ['GET'])]
+    #[Route('/project/{id}/file', name: 'app_gamme_project_file', methods: ['GET'])]
     public function projectFile(
-        #[MapEntity (id: 'projectId')] Project $project,
-        int $fileId
+        Project $project,
+        Request $request
     ): Response
     {
-        $model = $this->entityManager->getReference(Model::class, $fileId);
-
-        // Récupération de l'index du modèle dans le projet
+        // Récupération de tous les modèles du projet
         $projectModels = $this->modelRepository->findBy(['project' => $project]);
-        $currentIndex = array_search($model, $projectModels);
+        $totalFiles = count($projectModels);
+
+        // Récupération de l'index depuis la requête ou utilisation du premier modèle
+        $currentIndex = $request->query->getInt('index', 0);
+
+        // Vérification que l'index est valide
+        if ($currentIndex < 0 || $currentIndex >= $totalFiles) {
+            $currentIndex = 0;
+        }
+
+        // Récupération du modèle courant
+        $model = $projectModels[$currentIndex];
+
+        // Création des liens de pagination
+        $pagination = [
+            'prev' => $currentIndex > 0 ? $currentIndex - 1 : null,
+            'next' => $currentIndex < ($totalFiles - 1) ? $currentIndex + 1 : null,
+            'current' => $currentIndex,
+            'total' => $totalFiles
+        ];
+
+        // Formulaires pour les processus
+        $treatmentProcessForm = $this->createForm(TreatmentProcessAutocompleteType::class, null, [
+            'data' => $model->getTreatmentOperation()->map(function(TreatmentOperation $operation) {
+                return $operation->getTreatmentProcess();
+            })->toArray()
+        ]);
+
+        $finishProcessForm = $this->createForm(FinishProcessAutocompleteType::class, null, [
+            'data' => $model->getFinishOperation()->map(function(FinishOperation $operation) {
+                return $operation->getFinishProcess();
+            })->toArray()
+        ]);
+
 
         return $this->render('gamme/index.html.twig', [
             'project' => $project,
             'model' => $model,
-            'currentIndex' => $currentIndex,
-            'totalFiles' => count($projectModels),
+            'pagination' => $pagination,
+            'treatmentProcessForm' => $treatmentProcessForm,
+            'finishProcessForm' => $finishProcessForm,
             'globalPresets' => $this->globalPresetRepository->findAll(),
             'print3dPresets' => $this->print3DPresetRepository->findAll(),
             'treatmentPresets' => $this->treatmentPresetRepository->findAll(),
@@ -123,16 +156,16 @@ class GammeController extends AbstractController
             'slicerProfil' => $model->getSlicerProfil(),
             'treatmentOperations' => $model->getTreatmentOperation(),
             'finishOperations' => $model->getFinishOperation(),
-            // Les liens de navigation seront ajoutés plus tard
         ]);
     }
 
     #[Route('/api/preset/{id}/update', name: 'app_gamme_update_preset', methods: ['POST'])]
     public function updatePreset(
-        GlobalPreset $globalPreset,
-        Request $request,
+        GlobalPreset         $globalPreset,
+        Request              $request,
         EntityManagerService $entityManagerService
-    ): JsonResponse {
+    ): JsonResponse
+    {
         $data = json_decode($request->getContent(), true);
         $field = $data['field'] ?? null;
         $value = $data['value'] ?? null;
@@ -178,6 +211,52 @@ class GammeController extends AbstractController
     }
 
 
+    #[Route('/api/preset/print3d/{id}/load', name: 'app_gamme_load_print3d_preset', methods: ['GET'])]
+    public function loadPrint3DPreset(Print3DPreset $preset): JsonResponse
+    {
+        return $this->json([
+            'print3dProcess' => $preset->getPrint3dProcess()?->getId(),
+            'print3dMaterial' => $preset->getPrint3dMaterial()?->getId(),
+            'slicerProfil' => $preset->getSlicerProfil()?->getId()
+        ]);
+    }
+
+    #[Route('/api/preset/treatment/{id}/load', name: 'app_gamme_load_treatment_preset', methods: ['GET'])]
+    public function loadTreatmentPreset(TreatmentPreset $preset): JsonResponse
+    {
+        $processes = $preset->getTreatmentProcesses()->map(function (TreatmentProcess $process) {
+            return [
+                'value' => $process->getId(),
+                'text' => $process->getName()
+            ];
+        })->toArray();
+
+        return $this->json(['processes' => $processes]);
+    }
+
+    #[Route('/api/preset/finish/{id}/load', name: 'app_gamme_load_finish_preset', methods: ['GET'])]
+    public function loadFinishPreset(FinishPreset $preset): JsonResponse
+    {
+        $processes = $preset->getFinishProcesses()->map(function (FinishProcess $process) {
+            return [
+                'value' => $process->getId(),
+                'text' => $process->getName()
+            ];
+        })->toArray();
+
+        return $this->json(['processes' => $processes]);
+    }
+
+    #[Route('/api/preset/global/{id}/load', name: 'app_gamme_load_global_preset', methods: ['GET'])]
+    public function loadGlobalPreset(GlobalPreset $preset): JsonResponse
+    {
+        return $this->json([
+            'print3dPreset' => $preset->getPrint3dPreset()?->getId(),
+            'treatmentPreset' => $preset->getTreatmentPreset()?->getId(),
+            'finishPreset' => $preset->getFinishPreset()?->getId()
+        ]);
+    }
+
     #[Route('/api/project/{projectId}/file/{fileId}/update', name: 'app_gamme_update_model', methods: ['POST'])]
     public function updateModel(
         #[MapEntity(id: 'projectId')] Project $project,
@@ -199,6 +278,15 @@ class GammeController extends AbstractController
 
         try {
             match ($field) {
+                'print3dPreset' => $model->setPrint3dPreset(
+                    $value ? $this->print3DPresetRepository->find($value) : null
+                ),
+                'treatmentPreset' => $model->setTreatmentPreset(
+                    $value ? $this->treatmentPresetRepository->find($value) : null
+                ),
+                'finishPreset' => $model->setFinishPreset(
+                    $value ? $this->finishPresetRepository->find($value) : null
+                ),
                 'globalPreset' => $model->setGlobalPreset(
                     $value ? $this->globalPresetRepository->find($value) : null
                 ),
@@ -211,9 +299,11 @@ class GammeController extends AbstractController
                 'slicerProfil' => $model->setSlicerProfil(
                     $value ? $this->slicerProfilRepository->find($value) : null
                 ),
-                'assemblyName' => $model->setAssemblyName($value),
-                'assemblyComment' => $model->setAssemblyComment($value),
-                'isAssemblySpecifique' => $model->setIsAssemblySpecifique((bool) $value),
+                'quantity' => $model->setQuantity($value),
+                'isNeedSupport' => $model->setIsNeedSupport($value),
+                'isNeedTest' => $model->setIsNeedTest($value),
+                'treatmentOperations' => $this->updateTreatmentOperations($model, (array)$value),
+                'finishOperations' => $this->updateFinishOperations($model, (array)$value),
                 default => throw new \InvalidArgumentException('Champ invalide')
             };
 
@@ -221,6 +311,119 @@ class GammeController extends AbstractController
             return $this->json(['success' => true]);
         } catch (\Exception $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    private function updateTreatmentOperations(Model $model, array $processIds): void
+    {
+        foreach ($model->getTreatmentOperation() as $operation) {
+            $this->entityManager->remove($operation);
+        }
+        $model->getTreatmentOperation()->clear();
+
+        foreach ($processIds as $processId) {
+            $process = $this->treatmentProcessRepository->find($processId);
+            if ($process) {
+                $operation = new TreatmentOperation();
+                $operation->setTreatmentProcess($process);
+                $operation->setModel($model);
+                $this->entityManager->persist($operation);
+            }
+        }
+    }
+
+    private function updateFinishOperations(Model $model, array $processIds): void
+    {
+        foreach ($model->getFinishOperation() as $operation) {
+            $this->entityManager->remove($operation);
+        }
+        $model->getFinishOperation()->clear();
+
+        foreach ($processIds as $processId) {
+            $process = $this->finishProcessRepository->find($processId);
+            if ($process) {
+                $operation = new FinishOperation();
+                $operation->setFinishProcess($process);
+                $operation->setModel($model);
+                $this->entityManager->persist($operation);
+            }
+        }
+    }
+
+    private function applyPrint3DPreset(Model $model, ?int $presetId): void
+    {
+        if (!$presetId) {
+            $model->setPrint3dPreset(null);
+            $model->setPrint3dProcess(null);
+            $model->setPrint3dMaterial(null);
+            $model->setSlicerProfil(null);
+            return;
+        }
+
+        $preset = $this->print3DPresetRepository->find($presetId);
+        if (!$preset) {
+            throw new \InvalidArgumentException('Preset 3D introuvable');
+        }
+
+        $model->setPrint3dPreset($preset);
+        $model->setPrint3dProcess($preset->getPrint3dProcess());
+        $model->setPrint3dMaterial($preset->getPrint3dMaterial());
+        $model->setSlicerProfil($preset->getSlicerProfil());
+    }
+
+    private function applyTreatmentPreset(Model $model, ?int $presetId): void
+    {
+        if (!$presetId) {
+            $model->setTreatmentPreset(null);
+            foreach ($model->getTreatmentOperation() as $operation) {
+                $model->removeTreatmentOperation($operation);
+            }
+            return;
+        }
+
+        $preset = $this->treatmentPresetRepository->find($presetId);
+        if (!$preset) {
+            throw new \InvalidArgumentException('Preset de traitement introuvable');
+        }
+
+        $model->setTreatmentPreset($preset);
+        // Nettoyer les opérations existantes
+        foreach ($model->getTreatmentOperation() as $operation) {
+            $model->removeTreatmentOperation($operation);
+        }
+        // Ajouter les nouvelles opérations depuis le preset
+        foreach ($preset->getTreatmentProcesses() as $process) {
+            $operation = new TreatmentOperation();
+            $operation->setTreatmentProcess($process);
+            $model->addTreatmentOperation($operation);
+        }
+    }
+
+    private function applyFinishPreset(Model $model, ?int $presetId): void
+    {
+        if (!$presetId) {
+            $model->setFinishPreset(null);
+            foreach ($model->getFinishOperation() as $operation) {
+                $model->removeFinishOperation($operation);
+            }
+            return;
+        }
+
+        $preset = $this->finishPresetRepository->find($presetId);
+        if (!$preset) {
+            throw new \InvalidArgumentException('Preset de finition introuvable');
+        }
+
+        $model->setFinishPreset($preset);
+        // Nettoyer les opérations existantes
+        foreach ($model->getFinishOperation() as $operation) {
+            $model->removeFinishOperation($operation);
+        }
+        // Ajouter les nouvelles opérations depuis le preset
+        foreach ($preset->getFinishProcesses() as $process) {
+            $operation = new FinishOperation();
+            $operation->setFinishProcess($process);
+            $model->addFinishOperation($operation);
         }
     }
 
@@ -360,51 +563,6 @@ class GammeController extends AbstractController
         }
     }
 
-    #[Route('/api/preset/print3d/{id}/load', name: 'app_gamme_load_print3d_preset', methods: ['GET'])]
-    public function loadPrint3dPreset(Print3DPreset $preset): JsonResponse
-    {
-        return $this->json([
-            'print3dProcess' => $preset->getPrint3dProcess()?->getId(),
-            'print3dMaterial' => $preset->getPrint3dMaterial()?->getId(),
-            'slicerProfil' => $preset->getSlicerProfil()?->getId()
-        ]);
-    }
-
-    #[Route('/api/preset/treatment/{id}/load', name: 'app_gamme_load_treatment_preset', methods: ['GET'])]
-    public function loadTreatmentPreset(TreatmentPreset $preset): JsonResponse
-    {
-        $processes = $preset->getTreatmentProcesses()->map(function($process) {
-            return [
-                'value' => $process->getId(),
-                'text' => $process->getName()
-            ];
-        })->toArray();
-
-        return $this->json(['processes' => $processes]);
-    }
-
-    #[Route('/api/preset/finish/{id}/load', name: 'app_gamme_load_finish_preset', methods: ['GET'])]
-    public function loadFinishPreset(FinishPreset $preset): JsonResponse
-    {
-        $processes = $preset->getFinishProcesses()->map(function($process) {
-            return [
-                'value' => $process->getId(),
-                'text' => $process->getName()
-            ];
-        })->toArray();
-
-        return $this->json(['processes' => $processes]);
-    }
-
-    #[Route('/api/preset/global/{id}/load', name: 'app_gamme_load_global_preset', methods: ['GET'])]
-    public function loadGlobalPreset(GlobalPreset $preset): JsonResponse
-    {
-        return $this->json([
-            'print3dPreset' => $preset->getPrint3dPreset()?->getId(),
-            'treatmentPreset' => $preset->getTreatmentPreset()?->getId(),
-            'finishPreset' => $preset->getFinishPreset()?->getId()
-        ]);
-    }
     #[Route('/api/preset/print3d/{id}/update', name: 'app_gamme_update_print3d_preset', methods: ['POST'])]
     public function updatePrint3dPreset(Print3DPreset $preset, Request $request): JsonResponse
     {
@@ -499,6 +657,4 @@ class GammeController extends AbstractController
         $this->entityManager->flush();
         return $this->json(['success' => true]);
     }
-
-
 }
