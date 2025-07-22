@@ -7,6 +7,7 @@ use App\Repository\Process\TreatmentProcessRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: TreatmentProcessRepository::class)]
 class TreatmentProcess
@@ -17,6 +18,7 @@ class TreatmentProcess
     private ?int $id = null;
 
     #[ORM\Column(length: 120)]
+    #[Groups(['autocomplete'])]
     private ?string $name = null;
 
     #[ORM\Column]
@@ -90,5 +92,10 @@ class TreatmentProcess
         }
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        return $this->name;
     }
 }

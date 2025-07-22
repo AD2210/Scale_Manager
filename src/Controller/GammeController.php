@@ -10,6 +10,8 @@ use App\Entity\Preset\TreatmentPreset;
 use App\Entity\Process\FinishProcess;
 use App\Entity\Process\TreatmentProcess;
 use App\Entity\Project;
+use App\Form\FinishProcessAutocompleteType;
+use App\Form\TreatmentProcessAutocompleteType;
 use App\Repository\Base\SlicerProfilRepository;
 use App\Repository\ModelRepository;
 use App\Repository\Preset\FinishPresetRepository;
@@ -50,7 +52,14 @@ class GammeController extends AbstractController
     #[Route(name: 'app_gamme_preset', methods: ['GET'])]
     public function preset(GlobalPreset $globalPreset): Response
     {
+        $treatmentProcessForm = $this->createForm(TreatmentProcessAutocompleteType::class, null, [
+            'attr' => ['data-controller' => 'symfony--ux-autocomplete--autocomplete']
+        ]);
+        $finishProcessForm = $this->createForm(FinishProcessAutocompleteType::class, null)->createView();
+
         return $this->render('gamme/index.html.twig', [
+            'treatmentProcessForm' => $treatmentProcessForm,
+            'finishProcessForm' => $finishProcessForm,
             'globalPreset' => $globalPreset,
             'globalPresets' => $this->globalPresetRepository->findAll(),
             'print3dPresets' => $this->print3DPresetRepository->findAll(),

@@ -18,7 +18,8 @@
                 <select class="form-select" data-action="gamme#loadGlobalPreset">
                     <option value="">Charger un preset global</option>
                     {% for preset in globalPresets %}
-                        <option value="{{ preset.id }}" {{ globalPreset and globalPreset.id == preset.id ? 'selected' }}>
+                        <option
+                            value="{{ preset.id }}" {{ globalPreset and globalPreset.id == preset.id ? 'selected' }}>
                             {{ preset.name }}
                         </option>
                     {% endfor %}
@@ -43,16 +44,16 @@
                     <div class="btn-group" role="group">
                         <button class="btn btn-outline-primary" {{ prevModel is null ? 'disabled' }}
                                 data-action="gamme#navigateModel"
-                                {#data-gamme-url-param="{{ path('app_gamme_project_file', {'projectId': project.id, 'fileId': prevModel.id}) }}"
-                                #}
+                            {# data-gamme-url-param="{{ path('app_gamme_project_file', {'projectId': project.id, 'fileId': prevModel.id}) }}"
+                            #}
                         >
                             <i class="bi bi-arrow-left"></i>
                         </button>
                         <span class="btn btn-outline-secondary">{{ currentIndex + 1 }}/{{ totalFiles }}</span>
                         <button class="btn btn-outline-primary" {{ nextModel is null ? 'disabled' }}
                                 data-action="gamme#navigateModel"
-                                {#data-gamme-url-param="{{ path('app_gamme_project_file', {'projectId': project.id, 'fileId': nextModel.id}) }}"
-                                #}
+                            {# data-gamme-url-param="{{ path('app_gamme_project_file', {'projectId': project.id, 'fileId': nextModel.id}) }}"
+                            #}
                         >
                             <i class="bi bi-arrow-right"></i>
                         </button>
@@ -68,7 +69,8 @@
                     <select class="form-select" data-action="gamme#loadPrint3DPreset">
                         <option value="">Sélectionner un preset</option>
                         {% for preset in print3dPresets %}
-                            <option value="{{ preset.id }}" {{ print3dPreset and print3dPreset.id == preset.id ? 'selected' }}>
+                            <option
+                                value="{{ preset.id }}" {{ print3dPreset and print3dPreset.id == preset.id ? 'selected' }}>
                                 {{ preset.name }}
                             </option>
                         {% endfor %}
@@ -85,10 +87,12 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label">Process</label>
-                            <select class="form-select" data-action="gamme#updateField" data-gamme-field-param="print3dProcess">
+                            <select class="form-select" data-action="gamme#updateField"
+                                    data-gamme-field-param="print3dProcess">
                                 <option value="">Sélectionner un process</option>
                                 {% for process in print3dProcesses %}
-                                    <option value="{{ process.id }}" {{ print3dProcess and print3dProcess.id == process.id ? 'selected' }}>
+                                    <option
+                                        value="{{ process.id }}" {{ print3dProcess and print3dProcess.id == process.id ? 'selected' }}>
                                         {{ process.name }}
                                     </option>
                                 {% endfor %}
@@ -96,10 +100,12 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Matériau</label>
-                            <select class="form-select" data-action="gamme#updateField" data-gamme-field-param="print3dMaterial">
+                            <select class="form-select" data-action="gamme#updateField"
+                                    data-gamme-field-param="print3dMaterial">
                                 <option value="">Sélectionner un matériau</option>
                                 {% for material in print3dMaterials %}
-                                    <option value="{{ material.id }}" {{ print3dMaterial and print3dMaterial.id == material.id ? 'selected' }}>
+                                    <option
+                                        value="{{ material.id }}" {{ print3dMaterial and print3dMaterial.id == material.id ? 'selected' }}>
                                         {{ material.name }}
                                     </option>
                                 {% endfor %}
@@ -109,10 +115,12 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label">Profil Slicer</label>
-                            <select class="form-select" data-action="gamme#updateField" data-gamme-field-param="slicerProfil">
+                            <select class="form-select" data-action="gamme#updateField"
+                                    data-gamme-field-param="slicerProfil">
                                 <option value="">Sélectionner un profil</option>
                                 {% for profil in slicerProfils %}
-                                    <option value="{{ profil.id }}" {{ slicerProfil and slicerProfil.id == profil.id ? 'selected' }}>
+                                    <option
+                                        value="{{ profil.id }}" {{ slicerProfil and slicerProfil.id == profil.id ? 'selected' }}>
                                         {{ profil.name }}
                                     </option>
                                 {% endfor %}
@@ -126,13 +134,13 @@
                             </div>
                             <div class="form-check mb-2">
                                 <input type="checkbox" class="form-check-input" id="isNeedSupport"
-                                       {{ model.isNeedSupport ? 'checked' }}
+                                    {{ model.isNeedSupport ? 'checked' }}
                                        data-action="gamme#updateField" data-gamme-field-param="isNeedSupport">
                                 <label class="form-check-label" for="isNeedSupport">Support nécessaire</label>
                             </div>
                             <div class="form-check mb-2">
                                 <input type="checkbox" class="form-check-input" id="isNeedTest"
-                                       {{ model.isNeedTest ? 'checked' }}
+                                    {{ model.isNeedTest ? 'checked' }}
                                        data-action="gamme#updateField" data-gamme-field-param="isNeedTest">
                                 <label class="form-check-label" for="isNeedTest">Test nécessaire</label>
                             </div>
@@ -149,7 +157,8 @@
                     <select class="form-select" data-action="gamme#loadTreatmentPreset">
                         <option value="">Sélectionner un preset</option>
                         {% for preset in treatmentPresets %}
-                            <option value="{{ preset.id }}" {{ treatmentPreset and treatmentPreset.id == preset.id ? 'selected' }}>
+                            <option
+                                value="{{ preset.id }}" {{ treatmentPreset and treatmentPreset.id == preset.id ? 'selected' }}>
                                 {{ preset.name }}
                             </option>
                         {% endfor %}
@@ -162,19 +171,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <div class="d-flex flex-row flex-wrap gap-2 align-items-start" data-gamme-target="treatmentProcessList">
-                    <div style="width: 20%;">
-                        <select class="form-select" data-action="gamme#updateTreatmentProcess" data-gamme-index-param="0">
-                            <option value="">Sélectionner un traitement</option>
-                            {% for process in treatmentProcesses %}
-                                <option value="{{ process.id }}">{{ process.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button type="button" class="btn btn-outline-primary" style="width: 20%;" data-action="gamme#addTreatmentProcess">
-                        <i class="fa-solid fa-plus"></i> Ajouter
-                    </button>
-                </div>
+                {{ form_widget(treatmentProcessForm) }}
             </div>
         </div>
 
@@ -186,7 +183,8 @@
                     <select class="form-select" data-action="gamme#loadFinishPreset">
                         <option value="">Sélectionner un preset</option>
                         {% for preset in finishPresets %}
-                            <option value="{{ preset.id }}" {{ finishPreset and finishPreset.id == preset.id ? 'selected' }}>
+                            <option
+                                value="{{ preset.id }}" {{ finishPreset and finishPreset.id == preset.id ? 'selected' }}>
                                 {{ preset.name }}
                             </option>
                         {% endfor %}
@@ -199,19 +197,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <div class="d-flex flex-row flex-wrap gap-2 align-items-start" data-gamme-target="finishProcessList">
-                    <div style="width: 20%;">
-                        <select class="form-select" data-action="gamme#updateFinishProcess" data-gamme-index-param="0">
-                            <option value="">Sélectionner une finition</option>
-                            {% for process in finishProcesses %}
-                                <option value="{{ process.id }}">{{ process.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button type="button" class="btn btn-outline-primary" style="width: 20%;" data-action="gamme#addFinishProcess">
-                        <i class="fa-solid fa-plus"></i> Ajouter
-                    </button>
-                </div>
+                {{ form_widget(finishProcessForm) }}
             </div>
         </div>
 
@@ -249,7 +235,8 @@
                             </div>
                             {% if model.assemblyProcess.methodLink %}
                                 <div class="mb-3">
-                                    <a href="{{ model.assemblyProcess.methodLink }}" class="btn btn-outline-primary" target="_blank">
+                                    <a href="{{ model.assemblyProcess.methodLink }}" class="btn btn-outline-primary"
+                                       target="_blank">
                                         <i class="bi bi-file-earmark-text"></i> Voir la méthode
                                     </a>
                                 </div>
