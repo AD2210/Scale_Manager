@@ -39,6 +39,11 @@
                 <div class="mb-3">
                     {{ form_label(form.quoteLink) }}
                     {{ form_widget(form.quoteLink, {'attr': {'class': 'form-control'}}) }}
+                    {% if project.quoteLink %}
+                        <div class="form-text">
+                            Fichier actuel : {{ project.quoteLink|split('/')|last }}
+                        </div>
+                    {% endif %}
                     {{ form_errors(form.quoteLink) }}
                 </div>
             </div>
@@ -47,6 +52,11 @@
                 <div class="mb-3">
                     {{ form_label(form.specificationLink) }}
                     {{ form_widget(form.specificationLink, {'attr': {'class': 'form-control'}}) }}
+                    {% if project.specificationLink %}
+                        <div class="form-text">
+                            Fichier actuel : {{ project.specificationLink|split('/')|last }}
+                        </div>
+                    {% endif %}
                     {{ form_errors(form.specificationLink) }}
                 </div>
 

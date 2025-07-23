@@ -6,6 +6,7 @@ use App\Entity\Project;
 use App\Form\ProjectForm;
 use App\Repository\ProjectRepository;
 use App\Service\CustomerDataFolderScannerService;
+use App\Service\FileManagerService;
 use App\Service\ModelFolderScannerService;
 use App\Service\StatusCalculator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -34,52 +35,33 @@ final class ProjectController extends AbstractController
     public function new(
         Request $request,
         EntityManagerInterface $em,
-        SluggerInterface $slugger,
-        Filesystem $filesystem
+        FileManagerService $fileManager,
     ): Response {
         $project = new Project();
-
         $form = $this->createForm(ProjectForm::class, $project);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($project);
-            $em->flush(); // Nécessaire pour obtenir l'ID auto-généré @todo verifier les initialisation pour eviter les erreurs sql
+            $em->flush();
 
-            // Construction du nom de dossier projet
-            $id = $project->getId();
-            $slug = $slugger->slug($project->getTitle())->lower();
-            $projectFolderName = $id . '_' . $slug;
-            $projectBasePath = $this->getParameter('project_data_path') . '/' . $projectFolderName;
+            // Initialisation des dossiers projet
+            $fileManager->initializeProjectFolders($project);
 
-            // Création des dossiers pour les models et donnée clients
-            $filesystem->mkdir([
-                $projectBasePath,
-                $projectBasePath . '/Model',
-                $projectBasePath . '/CustomerData',
-            ]);
-
-            // Affectation des chemins relatifs
-            $project->setModelLink($projectBasePath. '/Model');
-            $project->setCustomerDataLink($projectBasePath. '/CustomerData');
-
-            // Upload des fichiers avec renommage dynamique
-            $quoteFile = $form->get('quoteLink')->getData();
-            if ($quoteFile) {
-                $newFilename = uniqid('quote_') . '.' . $quoteFile->guessExtension();
-                $quoteFile->move($projectBasePath, $newFilename);
-                $project->setQuoteLink($projectBasePath. '/' . $newFilename);
+            // Gestion des fichiers uploadés
+            if ($quoteFile = $form->get('quoteLink')->getData()) {
+                $project->setQuoteLink(
+                    $fileManager->handleProjectFileUpload($project, $quoteFile, 'quote')
+                );
             }
 
-            $specFile = $form->get('specificationLink')->getData();
-            if ($specFile) {
-                $newFilename = uniqid('spec_') . '.' . $specFile->guessExtension();
-                $specFile->move($projectBasePath, $newFilename);
-                $project->setSpecificationLink($projectBasePath. '/' . $newFilename);
+            if ($specFile = $form->get('specificationLink')->getData()) {
+                $project->setSpecificationLink(
+                    $fileManager->handleProjectFileUpload($project, $specFile, 'spec')
+                );
             }
 
-            $em->flush(); // Mise à jour avec les chemins corrects
-
+            $em->flush();
             return $this->redirectToRoute('app_project_index');
         }
 
@@ -124,16 +106,36 @@ final class ProjectController extends AbstractController
     }
 
     #[Route('/project/{id}/edit', name: 'app_project_edit')]
-    public function edit(Project $project, Request $request, EntityManagerInterface $em): Response
-    {
+    public function edit(
+        Project $project,
+        Request $request,
+        EntityManagerInterface $em,
+        FileManagerService $fileManager
+    ): Response {
         $form = $this->createForm(ProjectForm::class, $project);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $em->persist($project);
+            // Gestion du fichier devis
+            if ($quoteFile = $form->get('quoteLink')->getData()) {
+                $fileManager->deleteFile($project->getQuoteLink());
+                $project->setQuoteLink(
+                    $fileManager->handleProjectFileUpload($project, $quoteFile, 'quote')
+                );
+            }
+
+            // Gestion du fichier spécifications
+            if ($specFile = $form->get('specificationLink')->getData()) {
+                $fileManager->deleteFile($project->getSpecificationLink());
+                $project->setSpecificationLink(
+                    $fileManager->handleProjectFileUpload($project, $specFile, 'spec')
+                );
+            }
+
             $em->flush();
-            return $this->render('project/index.html.twig', []);
+            return $this->redirectToRoute('app_project_show', ['id' => $project->getId()]);
         }
+
         return $this->render('project/edit.html.twig', [
             'form' => $form,
             'project' => $project,
