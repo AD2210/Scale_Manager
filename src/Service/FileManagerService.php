@@ -10,11 +10,37 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 
 class FileManagerService
 {
+    private const UPLOAD_FOLDERS = [
+        'slicer_profil' => 'SlicerProfiles',
+        'assembly_process' => 'AssemblyMethods',
+        'quality_process' => 'QualityMethods'
+    ];
+
     public function __construct(
         private readonly ParameterBagInterface $params,
         private readonly SluggerInterface $slugger,
         private readonly Filesystem $filesystem,
     ) {
+        // Création des dossiers de base s'ils n'existent pas
+        foreach (self::UPLOAD_FOLDERS as $folder) {
+            $this->filesystem->mkdir($this->params->get('project_data_path') . '/' . $folder);
+        }
+    }
+
+    public function handleFileUpload(UploadedFile $file, string $entityType = ''): string
+    {
+        $baseDir = $this->params->get('project_data_path');
+        $uploadDir = $baseDir . '/' . (self::UPLOAD_FOLDERS[$entityType] ?? '');
+
+        // Si le type d'entité n'est pas reconnu, utiliser le dossier de base
+        if (!isset(self::UPLOAD_FOLDERS[$entityType])) {
+            $uploadDir = $baseDir;
+        }
+
+        $fileName = uniqid($entityType . '_') . '.' . $file->guessExtension();
+        $file->move($uploadDir, $fileName);
+
+        return $uploadDir . '/' . $fileName;
     }
 
     private function getProjectBasePath(Project $project): string
@@ -29,14 +55,12 @@ class FileManagerService
     {
         $projectBasePath = $this->getProjectBasePath($project);
 
-        // Création des dossiers pour les models et données clients
         $this->filesystem->mkdir([
             $projectBasePath,
             $projectBasePath . '/Model',
             $projectBasePath . '/CustomerData',
         ]);
 
-        // Affectation des chemins relatifs
         $project->setModelLink($projectBasePath . '/Model');
         $project->setCustomerDataLink($projectBasePath . '/CustomerData');
     }
