@@ -173,20 +173,9 @@ class EntityGenericController extends AbstractController
 
             // Traitement des données JSON
             if ($jsonData = json_decode($request->getContent(), true)) {
-                // Ajoutez ces lignes pour le debug
-                if (isset($jsonData['print3dStatus'])) {
-                    dump([
-                        'Valeur reçue' => $jsonData['print3dStatus'],
-                        'Type' => gettype($jsonData['print3dStatus'])
-                    ]);
-                }
-                // Fin debug
 
                 foreach ($jsonData as $field => $value) {
                     if (in_array($field, $config['fields'] ?? [])) {
-                        if (is_array($value)) {
-                            // cas d'une relation ManyToOne renvoie un array avec 1 seul valeur qu'il faut convertir en entité
-                        }
                         $this->entityService->updateEntityField($entity, $field, $value, $config);
                     }
                 }

@@ -148,6 +148,7 @@ class ListController extends AbstractController
         TreatmentProcessRepository $processRepository,
         TreatmentOperationRepository $operationRepository,
     ): Response {
+        //dd($processRepository->findAll());
         return $this->render('treatment/list.html.twig', [
             'items' => $modelRepository->findBy(['project' => $project]),
             'treatmentProcesses' => $processRepository->findAll(),
