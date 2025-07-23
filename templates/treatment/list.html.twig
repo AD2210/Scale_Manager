@@ -1,6 +1,15 @@
 {% extends 'components/_table_wrapper.html.twig' %}
 
 {% set entityType = 'model' %}
+{% set maxTreatments = 0 %}
+
+{# Calcul du nombre maximum de traitements #}
+{% for item in items %}
+    {% set itemCount = item.treatmentOperation|length %}
+    {% if itemCount > maxTreatments %}
+        {% set maxTreatments = itemCount %}
+    {% endif %}
+{% endfor %}
 
 {% block title %}Traitement{% endblock %}
 
@@ -10,11 +19,12 @@
 
 {% block table_head %}
     <tr>
-        <th>Fichier</th>
-        {% for process in treatmentProcesses %}
-            <th>{{ process.name }}</th>
-            <th class="text-center">Terminé</th>
+        <th class="col-2">Fichier</th>
+        {% for i in 1..maxTreatments %}
+            <th class="col-2">Traitement {{ i }}</th>
+            <th class="text-center col-1">Terminé</th>
         {% endfor %}
+        <th class="col-2">Nouveau</th>
     </tr>
 {% endblock %}
 
@@ -25,27 +35,49 @@
                 value: item.fileName
             } %}
 
-            {% for process in treatmentProcesses %}
-                {% set operation = item.treatmentOperation|filter(op => op.treatmentProcess.id == process.id)|first %}
+            {# Traitements existants triés par ordre de création #}
+            {% set operations = item.treatmentOperation|sort((a, b) => a.id <=> b.id) %}
+
+            {% for i in 1..maxTreatments %}
+                {% set operation = operations[i - 1] is defined ? operations[i - 1] : null %}
 
                 {% include 'components/editable/_dropdown_cell.html.twig' with {
                     entityId: item.id,
                     entityType: entityType,
-                    field: 'treatmentOperation',
-                    name: 'treatmentOperation-' ~ process.id,
-                    value: operation,
-                    items: treatmentOperations,
+                    field: 'treatmentProcess',
+                    name: 'treatmentOperation-' ~ i,
+                    value: operation ? {
+                        id: operation.id,
+                        name: operation.treatmentProcess.name,
+                        treatmentProcessId: operation.treatmentProcess.id
+                    } : null,
+                    items: treatmentProcesses,
                     multiple: false,
-                    placeholder: 'Aucun traitement'
+                    placeholder: 'Aucun traitement',
+                    disabled: operation is null and i > operations|length + 1
                 } %}
 
                 {% include 'components/editable/_checkbox_cell.html.twig' with {
-                    value: operation,
+                    value: operation ? operation.isDone : false,
                     field: 'isDone',
-                    entityId: operation,
-                    entityType: 'treatmentOperation'
+                    entityId: operation ? operation.id : null,
+                    entityType: 'treatmentOperation',
+                    disabled: operation is null
                 } %}
             {% endfor %}
+
+            {# Colonne "Nouveau traitement" #}
+            {% include 'components/editable/_dropdown_cell.html.twig' with {
+                entityId: item.id,
+                entityType: entityType,
+                field: 'treatmentProcess',
+                name: 'treatmentOperation-new',
+                value: null,
+                items: treatmentProcesses,
+                multiple: false,
+                placeholder: 'Ajouter un traitement'
+            } %}
+            <td></td>
         </tr>
     {% endfor %}
 {% endblock %}

@@ -189,6 +189,7 @@
         {# Carte Finitions #}
         <div class="col-md-3">
             <div class="card h-100">
+                <a href="{{ path('app_finish_list', {'id': project.id}) }}" class="text-decoration-none text-dark stretched-link"></a>
                 <div class="card-header">Finition</div>
                 <div class="card-body">
                     {% if finishDataSet.error is defined %}
