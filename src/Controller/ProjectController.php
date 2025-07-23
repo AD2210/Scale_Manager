@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Project;
 use App\Form\ProjectForm;
+use App\Repository\ModelRepository;
 use App\Repository\ProjectRepository;
 use App\Service\CustomerDataFolderScannerService;
 use App\Service\FileManagerService;
@@ -168,4 +169,16 @@ final class ProjectController extends AbstractController
         return (new BinaryFileResponse($filePath))
             ->setContentDisposition(ResponseHeaderBag::DISPOSITION_INLINE);
     }
+
+    #[Route('/api/project/{id}/check-models', name: 'app_project_check_models', methods: ['GET'])]
+    public function checkModels(Project $project, ModelRepository $modelRepository): JsonResponse
+    {
+        $projectModels = $modelRepository->findBy(['project' => $project]);
+
+        return $this->json([
+            'success' => count($projectModels) > 0,
+            'message' => count($projectModels) === 0 ? 'Aucun modèle disponible dans ce projet' : null
+        ]);
+    }
+
 }

@@ -9,7 +9,9 @@
             <a href="{{ path('app_project_edit', { id: project.id }) }}"
                class="btn btn-sm btn-outline-primary">Modifier</a>
             <a href="{{ path('app_gamme_project_file', { id: project.id }) }}"
-               class="btn btn-sm btn-outline-warning">Gamme</a>
+               class="btn btn-sm btn-outline-warning"
+               id="gammeButton"
+               data-project-id="{{ project.id }}">Gamme</a>
             <a href="{{ path('app_project_archive', { id: project.id }) }}" class="btn btn-sm btn-outline-secondary">
                 {{ project.isArchived ? 'Désarchiver' : 'Archiver' }}
             </a>
@@ -209,4 +211,77 @@
 
         {# Autres cartes #}
     </div>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const gammeButton = document.getElementById('gammeButton');
+
+            // Convertir le lien en button pour un meilleur contrôle
+            gammeButton.addEventListener('click', async function(e) {
+                e.preventDefault(); // Empêche le comportement par défaut
+
+                const projectId = this.dataset.projectId;
+                const targetUrl = this.href;
+
+                try {
+                    const response = await fetch(`/api/project/${projectId}/check-models`);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Si des modèles sont disponibles, navigation programmatique
+                        window.location.href = targetUrl;
+                    } else {
+                        // Création et affichage du toast
+                        const toastElement = createToast('warning', data.message);
+                        const toast = new bootstrap.Toast(toastElement, {
+                            delay: 3000 // Le toast restera visible 3 secondes
+                        });
+                        toast.show();
+                    }
+                } catch (error) {
+                    const toastElement = createToast('error', 'Une erreur est survenue lors de la vérification');
+                    const toast = new bootstrap.Toast(toastElement, {
+                        delay: 3000
+                    });
+                    toast.show();
+                }
+
+                // La navigation par défaut est toujours empêchée
+                return false;
+            });
+
+            function createToast(type, message) {
+                // Supprimer l'ancien conteneur de toast s'il existe
+                const existingContainer = document.querySelector('.toast-container');
+                if (existingContainer) {
+                    existingContainer.remove();
+                }
+
+                const toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+
+                const toastElement = document.createElement('div');
+                toastElement.className = `toast align-items-center text-black bg-${type === 'warning' ? 'warning' : 'danger'} border-0`;
+                toastElement.setAttribute('role', 'alert');
+                toastElement.setAttribute('aria-live', 'assertive');
+                toastElement.setAttribute('aria-atomic', 'true');
+
+                toastElement.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                `;
+
+                toastContainer.appendChild(toastElement);
+                document.body.appendChild(toastContainer);
+
+                return toastElement;
+            }
+        });
+    </script>
 {% endblock %}
