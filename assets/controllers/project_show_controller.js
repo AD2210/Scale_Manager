@@ -13,6 +13,36 @@ export default class extends Controller {
             console.error('Project ID is not defined');
             return;
         }
+        // Enregistrer l'état initial
+        this.saveState();
+
+        // Ajouter l'écouteur pour popstate
+        window.addEventListener('popstate', this.handlePopState.bind(this));
+    }
+
+    disconnect() {
+        // Nettoyer l'écouteur lors de la déconnexion du contrôleur
+        window.removeEventListener('popstate', this.handlePopState.bind(this));
+    }
+
+    // Sauvegarde l'état actuel dans l'historique
+    saveState() {
+        const state = {
+            id: this.projectIdValue,
+            timestamp: new Date().getTime()
+        };
+        window.history.replaceState(state, '', window.location.href);
+    }
+
+    // Gestion du retour/avant navigateur
+    handlePopState(event) {
+        // Recharger la page pour assurer la cohérence des données
+        window.location.reload();
+    }
+
+    // Après chaque action qui modifie l'état
+    afterStateChange() {
+        this.saveState();
     }
 
     // Gestion de l'archivage
@@ -38,6 +68,7 @@ export default class extends Controller {
 
             // Notification
             this.notify('success', `Projet ${isCurrentlyArchived ? 'désarchivé' : 'archivé'} avec succès`);
+            this.afterStateChange();
 
         } catch (error) {
             this.notify('error', 'Erreur lors de la mise à jour du statut');
@@ -61,6 +92,7 @@ export default class extends Controller {
             if (!response.ok) throw new Error('Erreur lors de la mise à jour');
 
             this.notify('success', 'Date limite mise à jour');
+            this.afterStateChange();
 
         } catch (error) {
             this.notify('error', 'Erreur lors de la mise à jour de la date limite');
@@ -97,6 +129,7 @@ export default class extends Controller {
                 Ignorés: ${data.skipped}`);
 
             // Recharger la page pour mettre à jour les stats
+            this.afterStateChange();
             window.location.reload();
 
         } catch (error) {
