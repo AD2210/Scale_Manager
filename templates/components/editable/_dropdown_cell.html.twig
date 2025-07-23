@@ -11,7 +11,13 @@
                 aria-expanded="false"
                 {{ disabled|default(false) ? 'disabled' : '' }}>
             {% if value is not null and value is not empty %}
-                {{ value.name }}
+                {% if value is iterable and value is not empty %}
+                    {% for item in value %}
+                        {{ item.name }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                {% else %}
+                    {{ value.name }}
+                {% endif %}
             {% else %}
                 {{ placeholder|default('Sélectionner...') }}
             {% endif %}
@@ -41,7 +47,9 @@
                                name="{{ name }}_{{ entityId }}"
                                value="{{ item.id }}"
                                {% if multiple is not defined or multiple %}
-                                   {% if item in value|default([]) %}checked{% endif %}
+                                   {% if value is iterable %}
+                                       {% if item in value %}checked{% endif %}
+                                   {% endif %}
                                {% else %}
                                    {% if value %}
                                        {% if field == 'treatmentProcess' and item.id == value.treatmentProcessId %}checked{% endif %}

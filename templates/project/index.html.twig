@@ -2,17 +2,22 @@
 
 {% block title %}Mes projets{% endblock %}
 
+{% block data_controller %}data-controller="project-index"{% endblock %}
+
 {% block page_header %}
     <h1 class="h4 m-0">Mes projets</h1>
     <div class="d-flex align-items-center gap-3">
         <div class="position-relative d-flex gap-1">
             <input type="text" class="form-control form-control-sm ps-4" placeholder="Rechercher un projet…"
-                   id="projectSearch" style="max-width: 250px;">
+                   id="projectSearch" style="max-width: 250px;" data-project-index-target="searchInput"
+                   data-action="input->project-index#search">
             <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-2 text-muted"></i>
         </div>
         <div class="form-check form-switch m-0 d-flex align-items-center">
-            <input class="form-check-input" type="checkbox" value="" id="archivedToggle">
-            <label class="form-check-label ms-2 small text-nowrap text-center" for="archivedToggle">
+            <input class="form-check-input" type="checkbox" value="" id="showArchivedToggle"
+                   data-project-index-target="archiveToggle"
+                   data-action="change->project-index#toggleArchivedProjects">
+            <label class="form-check-label ms-2 small text-nowrap text-center" for="showArchivedToggle">
                 Afficher les archivés
             </label>
         </div>
@@ -45,6 +50,7 @@
 
                 <span class="badge {{ badgeClass }} position-absolute bottom-0 start-0 m-2 archive-toggle p-2"
                       data-id="{{ project.id }}"
+                      data-action="click->project-index#toggleArchiveStatus"
                       style="z-index: 10; cursor: pointer;">
             {{ label }}
         </span>
