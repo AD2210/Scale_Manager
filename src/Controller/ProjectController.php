@@ -50,7 +50,7 @@ final class ProjectController extends AbstractController
             $id = $project->getId();
             $slug = $slugger->slug($project->getTitle())->lower();
             $projectFolderName = $id . '_' . $slug;
-            $projectBasePath = $this->getParameter('project_root_dir') . '/' . $projectFolderName;
+            $projectBasePath = $this->getParameter('project_data_path') . '/' . $projectFolderName;
 
             // Création des dossiers pour les models et donnée clients
             $filesystem->mkdir([

@@ -33,6 +33,33 @@
 
 {% block body %}
     <div class="row g-4">
+        {# Créons un macro pour réutiliser le code #}
+        {% macro progress_card(title, dataset, link = null) %}
+            <div class="card h-100">
+                {% if link %}
+                    <a href="{{ link }}" class="text-decoration-none text-dark stretched-link"></a>
+                {% endif %}
+                <div class="card-header">{{ title }}</div>
+                <div class="card-body">
+                    {% if dataset.error is defined %}
+                        <div class="text-danger">{{ dataset.error }}</div>
+                    {% else %}
+                        {% set done = dataset.done|default(0) %}
+                        {% set total = dataset.total|default(0) %}
+                        {% set progress = dataset.progress|default(0) %}
+
+                        <div class="text-muted small">{{ done }} / {{ total }} traités</div>
+                        <div class="progress mt-2" style="height: 8px;">
+                            <div class="progress-bar bg-warning" style="width: {{ progress }}%;"></div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endmacro %}
+
+        {# Utilisation de la macro pour les cartes de progression #}
+        {% import _self as components %}
+
         {# Carte devis #}
         <div class="col-md-3">
             <div class="card shadow-sm h-100">
@@ -100,6 +127,7 @@
                 </div>
             </div>
         </div>
+
         {# Carte dossier client #}
         <div class="col-md-3">
             <div class="card h-100">
@@ -116,19 +144,20 @@
                     {% if customerDataDataset.error is defined %}
                         <div class="text-danger">{{ customerDataDataset.error }}</div>
                     {% else %}
-                        <div class="text-muted small">{{ customerDataDataset.done }} / {{ customerDataDataset.total }}
-                            traités
-                        </div>
+                        {% set done = customerDataDataset.done|default(0) %}
+                        {% set total = customerDataDataset.total|default(0) %}
+                        {% set progress = customerDataDataset.progress|default(0) %}
+
+                        <div class="text-muted small">{{ done }} / {{ total }} traités</div>
                         <div class="progress mt-2" style="height: 8px;">
-                            <div class="progress-bar bg-success"
-                                 style="width: {{ customerDataDataset.progress }}%;"></div>
+                            <div class="progress-bar bg-success" style="width: {{ progress }}%;"></div>
                         </div>
                     {% endif %}
                 </div>
             </div>
         </div>
 
-        {# Carte dossier modèles #}
+        {# Carte dossier modèles avec la même approche #}
         <div class="col-md-3">
             <div class="card h-100">
                 <a href="{{ path('app_model_list', {'id': project.id}) }}" class="text-decoration-none text-dark stretched-link"></a>
@@ -141,99 +170,41 @@
                                data-id="{{ project.id }}"
                                value="{{ project.modelLink }}">
                     </div>
-                    <div class="text-muted small">{{ modelDataset.done }} / {{ modelDataset.total }} traités</div>
-                    <div class="progress mt-2" style="height: 8px;">
-                        <div class="progress-bar bg-info" style="width: {{ modelDataset.progress }}%;"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {# Carte impression 3D #}
-        <div class="col-md-3">
-            <div class="card h-100">
-                <a href="{{ path('app_print3d_list', {'id': project.id}) }}" class="text-decoration-none text-dark stretched-link"></a>
-                <div class="card-header">Impression 3D</div>
-                <div class="card-body">
-                    {% if print3DDataset.error is defined %}
-                        <div class="text-danger">{{ print3DDataset.error }}</div>
+                    {% if modelDataset.error is defined %}
+                        <div class="text-danger">{{ modelDataset.error }}</div>
                     {% else %}
-                        <div class="text-muted small">{{ print3DDataset.done }} / {{ print3DDataset.total }} imprimés
-                        </div>
+                        {% set done = modelDataset.done|default(0) %}
+                        {% set total = modelDataset.total|default(0) %}
+                        {% set progress = modelDataset.progress|default(0) %}
+
+                        <div class="text-muted small">{{ done }} / {{ total }} traités</div>
                         <div class="progress mt-2" style="height: 8px;">
-                            <div class="progress-bar bg-warning" style="width: {{ print3DDataset.progress }}%;"></div>
+                            <div class="progress-bar bg-info" style="width: {{ progress }}%;"></div>
                         </div>
                     {% endif %}
                 </div>
             </div>
         </div>
-        {# Carte Post-traitement #}
+
+        {# Utilisation de la macro pour les autres cartes #}
         <div class="col-md-3">
-            <div class="card h-100">
-                <a href="{{ path('app_treatment_list', {'id': project.id}) }}" class="text-decoration-none text-dark stretched-link"></a>
-                <div class="card-header">Post-Traitement</div>
-                <div class="card-body">
-                    {% if postTreatmentDataset.error is defined %}
-                        <div class="text-danger">{{ postTreatmentDataset.error }}</div>
-                    {% else %}
-                        <div class="text-muted small">{{ postTreatmentDataset.done }}
-                            / {{ postTreatmentDataset.total }} traités
-                        </div>
-                        <div class="progress mt-2" style="height: 8px;">
-                            <div class="progress-bar bg-warning"
-                                 style="width: {{ postTreatmentDataset.progress }}%;"></div>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
+            {{ components.progress_card('Impression 3D', print3DDataset, path('app_print3d_list', {'id': project.id})) }}
         </div>
-        {# Carte Finitions #}
+
         <div class="col-md-3">
-            <div class="card h-100">
-                <a href="{{ path('app_finish_list', {'id': project.id}) }}" class="text-decoration-none text-dark stretched-link"></a>
-                <div class="card-header">Finition</div>
-                <div class="card-body">
-                    {% if finishDataSet.error is defined %}
-                        <div class="text-danger">{{ finishDataSet.error }}</div>
-                    {% else %}
-                        <div class="text-muted small">{{ finishDataSet.done }} / {{ finishDataSet.total }} traités</div>
-                        <div class="progress mt-2" style="height: 8px;">
-                            <div class="progress-bar bg-warning" style="width: {{ finishDataSet.progress }}%;"></div>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
+            {{ components.progress_card('Post-Traitement', postTreatmentDataset, path('app_treatment_list', {'id': project.id})) }}
         </div>
-        {# Carte Assemblage #}
+
         <div class="col-md-3">
-            <div class="card h-100">
-                <div class="card-header">Assemblage</div>
-                <div class="card-body">
-                    {% if assemblyDataset.error is defined %}
-                        <div class="text-danger">{{ assemblyDataset.error }}</div>
-                    {% else %}
-                        <div class="text-muted small">{{ assemblyDataset.done }} / {{ assemblyDataset.total }} assemblés</div>
-                        <div class="progress mt-2" style="height: 8px;">
-                            <div class="progress-bar bg-warning" style="width: {{ assemblyDataset.progress }}%;"></div>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
+            {{ components.progress_card('Finition', finishDataSet, path('app_finish_list', {'id': project.id})) }}
         </div>
-        {# Carte Contrôle Qualité #}
+
         <div class="col-md-3">
-            <div class="card h-100">
-                <div class="card-header">Contrôle qualité</div>
-                <div class="card-body">
-                    {% if qualityDataset.error is defined %}
-                        <div class="text-danger">{{ qualityDataset.error }}</div>
-                    {% else %}
-                        <div class="text-muted small">{{ qualityDataset.done }} / {{ qualityDataset.total }} contrôlés</div>
-                        <div class="progress mt-2" style="height: 8px;">
-                            <div class="progress-bar bg-warning" style="width: {{ qualityDataset.progress }}%;"></div>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
+            {{ components.progress_card('Assemblage', assemblyDataset) }}
+        </div>
+
+        <div class="col-md-3">
+            {{ components.progress_card('Contrôle qualité', qualityDataset) }}
         </div>
 
         {# Autres cartes #}
