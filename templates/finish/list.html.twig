@@ -1,6 +1,15 @@
 {% extends 'components/_table_wrapper.html.twig' %}
 
 {% set entityType = 'model' %}
+{% set maxFinishes = 0 %}
+
+{# Calcul du nombre maximum de finitions #}
+{% for item in items %}
+    {% set itemCount = item.finishOperation|length %}
+    {% if itemCount > maxFinishes %}
+        {% set maxFinishes = itemCount %}
+    {% endif %}
+{% endfor %}
 
 {% block title %}Finition{% endblock %}
 
@@ -10,11 +19,12 @@
 
 {% block table_head %}
     <tr>
-        <th>Fichier</th>
-        {% for process in finishProcesses %}
-            <th>{{ process.name }}</th>
-            <th class="text-center">Terminé</th>
+        <th class="col-2">Fichier</th>
+        {% for i in 1..maxFinishes %}
+            <th class="col-2">Finition {{ i }}</th>
+            <th class="text-center col-1">Terminé</th>
         {% endfor %}
+        <th class="col-2">Nouveau</th>
     </tr>
 {% endblock %}
 
@@ -25,27 +35,49 @@
                 value: item.fileName
             } %}
 
-            {% for process in finishProcesses %}
-                {% set operation = item.finishOperation|filter(op => op.finishProcess.id == process.id)|first %}
+            {# Finitions existantes triées par ordre de création #}
+            {% set operations = item.finishOperation|sort((a, b) => a.id <=> b.id) %}
+
+            {% for i in 1..maxFinishes %}
+                {% set operation = operations[i - 1] is defined ? operations[i - 1] : null %}
 
                 {% include 'components/editable/_dropdown_cell.html.twig' with {
                     entityId: item.id,
                     entityType: entityType,
-                    field: 'finishOperation',
-                    name: 'finishOperation-' ~ process.id,
-                    value: operation,
-                    items: finishOperations,
+                    field: 'finishProcess',
+                    name: 'finishOperation-' ~ i,
+                    value: operation ? {
+                        id: operation.id,
+                        name: operation.finishProcess.name,
+                        finishProcessId: operation.finishProcess.id
+                    } : null,
+                    items: finishProcesses,
                     multiple: false,
-                    placeholder: 'Aucune finition'
+                    placeholder: 'Aucune finition',
+                    disabled: operation is null and i > operations|length + 1
                 } %}
 
                 {% include 'components/editable/_checkbox_cell.html.twig' with {
-                    value: operation,
+                    value: operation ? operation.isDone : false,
                     field: 'isDone',
-                    entityId: operation,
-                    entityType: 'finishOperation'
+                    entityId: operation ? operation.id : null,
+                    entityType: 'finishOperation',
+                    disabled: operation is null
                 } %}
             {% endfor %}
+
+            {# Colonne "Nouvelle finition" #}
+            {% include 'components/editable/_dropdown_cell.html.twig' with {
+                entityId: item.id,
+                entityType: entityType,
+                field: 'finishProcess',
+                name: 'finishOperation-new',
+                value: null,
+                items: finishProcesses,
+                multiple: false,
+                placeholder: 'Ajouter une finition'
+            } %}
+            <td></td>
         </tr>
     {% endfor %}
 {% endblock %}

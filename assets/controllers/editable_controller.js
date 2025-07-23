@@ -54,8 +54,9 @@ export default class extends Controller {
 
         // Configuration de la requête selon le type d'opération
         if (!options) {
-            if (this.typeValue === 'treatmentOperation' && this.fieldValue === 'isDone') {
-                // Cas spécifique pour la mise à jour du isDone des opérations de traitement
+            if ((this.typeValue === 'treatmentOperation' || this.typeValue === 'finishOperation') && this.fieldValue === 'isDone') {
+                // Cas spécifique pour la mise à jour du isDone des opérations de traitement et de finition
+                const operationType = this.typeValue === 'treatmentOperation' ? 'treatment' : 'finish';
                 options = {
                     method: 'POST',
                     headers: {
@@ -68,8 +69,9 @@ export default class extends Controller {
                         entityId: this.idValue
                     })
                 }
-                url = `/api/treatment/operation/${target.closest('tr').dataset.id}`
-            } else if ((this.typeValue === 'model' && this.fieldValue === 'treatmentProcess')){
+                url = `/api/${operationType}/operation/${target.closest('tr').dataset.id}`
+            } else if ((this.typeValue === 'model' && (this.fieldValue === 'treatmentProcess' || this.fieldValue === 'finishProcess'))){
+                const operationType = this.fieldValue === 'treatmentProcess' ? 'treatment' : 'finish';
                 const operationId = target.dataset.operationId || td.dataset.operationId
                 options = {
                     method: 'POST',
@@ -83,8 +85,7 @@ export default class extends Controller {
                         operationId: operationId
                     })
                 }
-                url = `/api/treatment/operation/${this.idValue}`
-
+                url = `/api/${operationType}/operation/${this.idValue}`
             } else if (this.typeValue === 'customerData' && this.fieldValue === 'customerDataOperation') {
                 // Cas spécifique pour les opérations CustomerData
                 options = {

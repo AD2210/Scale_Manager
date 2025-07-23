@@ -43,7 +43,10 @@
                                {% if multiple is not defined or multiple %}
                                    {% if item in value|default([]) %}checked{% endif %}
                                {% else %}
-                                   {% if value and item.id == value.treatmentProcessId %}checked{% endif %}
+                                   {% if value %}
+                                       {% if field == 'treatmentProcess' and item.id == value.treatmentProcessId %}checked{% endif %}
+                                       {% if field == 'finishProcess' and item.id == value.finishProcessId %}checked{% endif %}
+                                   {% endif %}
                                {% endif %}
                                data-action="change->editable#update"
                                {{ disabled|default(false) ? 'disabled' : '' }}>

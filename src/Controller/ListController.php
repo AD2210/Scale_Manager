@@ -165,8 +165,8 @@ class ListController extends AbstractController
     ): Response {
         return $this->render('finish/list.html.twig', [
             'items' => $modelRepository->findBy(['project' => $project]),
-            'treatmentProcesses' => $processRepository->findAll(),
-            'treatmentOperations' => $operationRepository->findAll(),
+            'finishProcesses' => $processRepository->findAll(),
+            'finishOperations' => $operationRepository->findAll(),
         ]);
     }
 
