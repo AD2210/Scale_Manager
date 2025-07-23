@@ -3,30 +3,36 @@
 {% block title %}Détail - {{ project.title }} - {{ project.customer.name }}{% endblock %}
 
 {% block page_header %}
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex justify-content-between align-items-center" data-controller="project-show"
+         data-project-show-project-id-value="{{ project.id }}">
         <h1 class="h4 mb-0 pe-3">Détail - {{ project.title }} - {{ project.customer.name }}</h1>
         <div class="d-flex align-items-center gap-3">
             <a href="{{ path('app_project_edit', { id: project.id }) }}"
                class="btn btn-sm btn-outline-primary">Modifier</a>
             <a href="{{ path('app_gamme_project_file', { id: project.id }) }}"
                class="btn btn-sm btn-outline-warning"
-               id="gammeButton"
-               data-project-id="{{ project.id }}">Gamme</a>
-            <a href="{{ path('app_project_archive', { id: project.id }) }}" class="btn btn-sm btn-outline-secondary">
+               data-project-show-target="gammeButton"
+               data-action="click->project-show#checkModels">Gamme</a>
+            <a href="{{ path('app_project_archive', { id: project.id }) }}" class="btn btn-sm btn-outline-secondary"
+               data-project-show-target="archiveButton"
+               data-action="project-show#toggleArchive">
                 {{ project.isArchived ? 'Désarchiver' : 'Archiver' }}
             </a>
             <input type="date"
                    class="form-control form-control-sm"
-                   id="deadlineInput"
-                   value="{{ project.deadline ? project.deadline|date('Y-m-d') : '' }}"
-                   data-id="{{ project.id }}">
+                   data-project-show-target="deadline"
+                   data-action="change->project-show#updateDeadline"
+                   value="{{ project.deadline ? project.deadline|date('Y-m-d') : '' }}">
         </div>
         <div class="d-flex align-items-center ps-3 gap-3">
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="deleteOrphansCheckbox">
+                <input class="form-check-input" type="checkbox" id="deleteOrphansCheckbox"
+                       data-project-show-target="deleteOrphans">
                 <label class="form-check-label small" for="deleteOrphansCheckbox">Supprimer les orphelins</label>
             </div>
-            <button id="resyncFoldersBtn" class="btn btn-sm btn-outline-secondary" title="Re-synchroniser les dossiers">
+            <button id="resyncFoldersBtn" class="btn btn-sm btn-outline-secondary" title="Re-synchroniser les dossiers"
+                    data-project-show-target="resyncButton"
+                    data-action="project-show#resyncFolders">
                 <i class="fa-solid fa-retweet"></i>
             </button>
         </div>
@@ -69,13 +75,15 @@
                     <h5 class="card-title">Devis</h5>
 
                     {% if project.quoteLink %}
-                        <embed src="{{ path('project_file_download', { id: project.id, type: 'quote' }) }}" width="100%" height="400px" />
+                        <embed src="{{ path('project_file_download', { id: project.id, type: 'quote' }) }}" width="100%"
+                               height="400px"/>
                     {% else %}
                         <div class="alert alert-secondary text-center">Aucun fichier actuellement.</div>
                     {% endif %}
 
                     <div class="mt-3 d-flex gap-2">
-                        <a class="btn btn-sm btn-outline-secondary {{ not project.quoteLink ? 'disabled' }}" target="_blank"
+                        <a class="btn btn-sm btn-outline-secondary {{ not project.quoteLink ? 'disabled' }}"
+                           target="_blank"
                            href="{{ path('project_file_download', { id: project.id, type: 'quote' }) }}">
                             <i class="fa-solid fa-eye"></i>
                         </a>
@@ -103,13 +111,15 @@
                     <h5 class="card-title">Cahier de charges</h5>
 
                     {% if project.specificationLink %}
-                        <embed src="{{ path('project_file_download', { id: project.id, type: 'specification' }) }}" width="100%" height="400px" />
+                        <embed src="{{ path('project_file_download', { id: project.id, type: 'specification' }) }}"
+                               width="100%" height="400px"/>
                     {% else %}
                         <div class="alert alert-secondary text-center">Aucun fichier actuellement.</div>
                     {% endif %}
 
                     <div class="mt-3 d-flex gap-2">
-                        <a class="btn btn-sm btn-outline-secondary {{ not project.specificationLink ? 'disabled' }}" target="_blank"
+                        <a class="btn btn-sm btn-outline-secondary {{ not project.specificationLink ? 'disabled' }}"
+                           target="_blank"
                            href="{{ path('project_file_download', { id: project.id, type: 'specification' }) }}">
                             <i class="fa-solid fa-eye"></i>
                         </a>
@@ -133,7 +143,8 @@
         {# Carte dossier client #}
         <div class="col-md-3">
             <div class="card h-100">
-                <a href="{{ path('app_datas_list', {'id': project.id}) }}" class="text-decoration-none text-dark stretched-link"></a>
+                <a href="{{ path('app_datas_list', {'id': project.id}) }}"
+                   class="text-decoration-none text-dark stretched-link"></a>
                 <div class="card-header">Données client</div>
                 <div class="card-body">
                     <div class="mb-2">
@@ -162,7 +173,8 @@
         {# Carte dossier modèles avec la même approche #}
         <div class="col-md-3">
             <div class="card h-100">
-                <a href="{{ path('app_model_list', {'id': project.id}) }}" class="text-decoration-none text-dark stretched-link"></a>
+                <a href="{{ path('app_model_list', {'id': project.id}) }}"
+                   class="text-decoration-none text-dark stretched-link"></a>
                 <div class="card-header">Modèles</div>
                 <div class="card-body">
                     <div class="mb-2">
@@ -211,77 +223,4 @@
 
         {# Autres cartes #}
     </div>
-{% endblock %}
-{% block javascripts %}
-    {{ parent() }}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const gammeButton = document.getElementById('gammeButton');
-
-            // Convertir le lien en button pour un meilleur contrôle
-            gammeButton.addEventListener('click', async function(e) {
-                e.preventDefault(); // Empêche le comportement par défaut
-
-                const projectId = this.dataset.projectId;
-                const targetUrl = this.href;
-
-                try {
-                    const response = await fetch(`/api/project/${projectId}/check-models`);
-                    const data = await response.json();
-
-                    if (data.success) {
-                        // Si des modèles sont disponibles, navigation programmatique
-                        window.location.href = targetUrl;
-                    } else {
-                        // Création et affichage du toast
-                        const toastElement = createToast('warning', data.message);
-                        const toast = new bootstrap.Toast(toastElement, {
-                            delay: 3000 // Le toast restera visible 3 secondes
-                        });
-                        toast.show();
-                    }
-                } catch (error) {
-                    const toastElement = createToast('error', 'Une erreur est survenue lors de la vérification');
-                    const toast = new bootstrap.Toast(toastElement, {
-                        delay: 3000
-                    });
-                    toast.show();
-                }
-
-                // La navigation par défaut est toujours empêchée
-                return false;
-            });
-
-            function createToast(type, message) {
-                // Supprimer l'ancien conteneur de toast s'il existe
-                const existingContainer = document.querySelector('.toast-container');
-                if (existingContainer) {
-                    existingContainer.remove();
-                }
-
-                const toastContainer = document.createElement('div');
-                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
-
-                const toastElement = document.createElement('div');
-                toastElement.className = `toast align-items-center text-black bg-${type === 'warning' ? 'warning' : 'danger'} border-0`;
-                toastElement.setAttribute('role', 'alert');
-                toastElement.setAttribute('aria-live', 'assertive');
-                toastElement.setAttribute('aria-atomic', 'true');
-
-                toastElement.innerHTML = `
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            ${message}
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                `;
-
-                toastContainer.appendChild(toastElement);
-                document.body.appendChild(toastContainer);
-
-                return toastElement;
-            }
-        });
-    </script>
 {% endblock %}
