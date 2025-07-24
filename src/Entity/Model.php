@@ -7,10 +7,6 @@ use App\Entity\Base\SubContractor;
 use App\Entity\Enum\Print3DStatusEnum;
 use App\Entity\Operation\FinishOperation;
 use App\Entity\Operation\TreatmentOperation;
-use App\Entity\Preset\FinishPreset;
-use App\Entity\Preset\GlobalPreset;
-use App\Entity\Preset\Print3DPreset;
-use App\Entity\Preset\TreatmentPreset;
 use App\Entity\Process\AssemblyProcess;
 use App\Entity\Process\Print3DMaterial;
 use App\Entity\Process\Print3DProcess;
@@ -60,17 +56,13 @@ class Model
     #[ORM\Column]
     private ?bool $isDelivered = false;
 
-    #[ORM\ManyToOne]
-    private ?Print3DPreset $print3dPreset = null;
-
-    #[ORM\ManyToOne]
-    private ?TreatmentPreset $treatmentPreset = null;
-
-    #[ORM\ManyToOne]
-    private ?FinishPreset $finishPreset = null;
-
-    #[ORM\ManyToOne]
-    private ?GlobalPreset $globalPreset = null;
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $usedPresets = [
+        'global' => null,      // ID du preset global ou null si modifié
+        'print3d' => null,     // ID du preset d'impression ou null si modifié
+        'treatment' => null,   // ID du preset de traitement ou null si modifié
+        'finish' => null       // ID du preset de finition ou null si modifié
+    ];
 
     #[ORM\ManyToOne]
     private ?Print3DProcess $print3dProcess = null;
@@ -247,51 +239,14 @@ class Model
         return $this;
     }
 
-    public function getPrint3dPreset(): ?Print3DPreset
+    public function getUsedPresets(): ?array
     {
-        return $this->print3dPreset;
+        return $this->usedPresets;
     }
 
-    public function setPrint3dPreset(?Print3DPreset $print3dPreset): static
+    public function setUsedPresets(?array $usedPresets): static
     {
-        $this->print3dPreset = $print3dPreset;
-
-        return $this;
-    }
-
-    public function getTreatmentPreset(): ?TreatmentPreset
-    {
-        return $this->treatmentPreset;
-    }
-
-    public function setTreatmentPreset(?TreatmentPreset $treatmentPreset): static
-    {
-        $this->treatmentPreset = $treatmentPreset;
-
-        return $this;
-    }
-
-    public function getFinishPreset(): ?FinishPreset
-    {
-        return $this->finishPreset;
-    }
-
-    public function setFinishPreset(?FinishPreset $finishPreset): static
-    {
-        $this->finishPreset = $finishPreset;
-
-        return $this;
-    }
-
-    public function getGlobalPreset(): ?GlobalPreset
-    {
-        return $this->globalPreset;
-    }
-
-    public function setGlobalPreset(?GlobalPreset $globalPreset): static
-    {
-        $this->globalPreset = $globalPreset;
-
+        $this->usedPresets = $usedPresets;
         return $this;
     }
 
@@ -474,4 +429,21 @@ class Model
 
         return $this;
     }
+
+    public function updateUsedPresets(string $type, ?int $presetId, ?int $globalPresetId = null): void
+    {
+        if (!$this->usedPresets) {
+            $this->usedPresets = [];
+        }
+
+        if ($presetId) {
+            $this->usedPresets[$type] = [
+                'preset_id' => $presetId,
+                'global_preset_id' => $globalPresetId
+            ];
+        } else {
+            unset($this->usedPresets[$type]);
+        }
+    }
+
 }

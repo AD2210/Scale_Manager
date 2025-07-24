@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Gamme {{ project is defined ? project.title : globalPreset.name }}{% endblock %}
+{% block title %}Gamme {{ project is defined ? project.title : '' }}{% endblock %}
 
 {% block data_controller %}data-controller="gamme" {% if model is defined %}data-model-id="{{ model.id }}"{% endif %}
 {% endblock %}
@@ -47,7 +47,7 @@
                     <option value="">Charger un preset global</option>
                     {% for preset in globalPresets %}
                         <option
-                            value="{{ preset.id }}" {{ globalPreset and globalPreset.id == preset.id ? 'selected' }}>
+                            value="{{ preset.id }}" {{ globalPreset == preset.id ? 'selected' }}>
                             {{ preset.name }}
                         </option>
                     {% endfor %}
@@ -76,7 +76,7 @@
                         <option value="">Sélectionner un preset</option>
                         {% for preset in print3dPresets %}
                             <option
-                                value="{{ preset.id }}" {{ print3dPreset and print3dPreset.id == preset.id ? 'selected' }}>
+                                value="{{ preset.id }}" {{ print3dPreset == preset.id ? 'selected' }}>
                                 {{ preset.name }}
                             </option>
                         {% endfor %}
@@ -165,7 +165,7 @@
                         <option value="">Sélectionner un preset</option>
                         {% for preset in treatmentPresets %}
                             <option
-                                value="{{ preset.id }}" {{ treatmentPreset and treatmentPreset.id == preset.id ? 'selected' }}>
+                                value="{{ preset.id }}" {{ treatmentPreset == preset.id ? 'selected' }}>
                                 {{ preset.name }}
                             </option>
                         {% endfor %}
@@ -199,7 +199,7 @@
                         <option value="">Sélectionner un preset</option>
                         {% for preset in finishPresets %}
                             <option
-                                value="{{ preset.id }}" {{ finishPreset and finishPreset.id == preset.id ? 'selected' }}>
+                                value="{{ preset.id }}" {{ finishPreset == preset.id ? 'selected' }}>
                                 {{ preset.name }}
                             </option>
                         {% endfor %}

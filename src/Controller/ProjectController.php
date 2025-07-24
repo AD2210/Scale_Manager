@@ -12,6 +12,7 @@ use App\Service\ModelFolderScannerService;
 use App\Service\StatusCalculator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,7 +27,7 @@ final class ProjectController extends AbstractController
     #[Route('/', name: 'app_project_index')]
     public function index(ProjectRepository $repository): Response
     {
-        $projects = $repository->findAll(); //@todo mettre critère is archived ici ou via JS dans le template pour affichage dynamique
+        $projects = $repository->findAll();
         return $this->render('project/index.html.twig', [
             'projects' => $projects,
         ]);
@@ -91,8 +92,6 @@ final class ProjectController extends AbstractController
         $finishDataSet = $statusCalculator->calculateFinishProgress($project);
         $assemblyDataset = $statusCalculator->calculateAssemblyProgress($project);
         $qualityDataset = $statusCalculator->calculateQualityProgress($project);
-
-        //dd($modelDataset,$customerDataDataset, $print3dDataset, $postTreatmentDataset, $finishDataSet, $assemblyDataset, $qualityDataset);
 
         return $this->render('project/show.html.twig', [
             'project' => $project,
