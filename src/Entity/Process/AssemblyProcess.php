@@ -2,7 +2,10 @@
 
 namespace App\Entity\Process;
 
+use App\Entity\Operation\AssemblyOperation;
 use App\Repository\Process\AssemblyProcessRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -28,6 +31,17 @@ class AssemblyProcess
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $methodLink = null;
+
+    /**
+     * @var Collection<int, AssemblyOperation>
+     */
+    #[ORM\OneToMany(targetEntity: AssemblyOperation::class, mappedBy: 'assemblyProcess')]
+    private Collection $assemblyOperations;
+
+    public function __construct()
+    {
+        $this->assemblyOperations = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -96,6 +110,36 @@ class AssemblyProcess
     public function setMethodLink(?string $methodLink): static
     {
         $this->methodLink = $methodLink;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, AssemblyOperation>
+     */
+    public function getAssemblyOperations(): Collection
+    {
+        return $this->assemblyOperations;
+    }
+
+    public function addAssemblyOperation(AssemblyOperation $assemblyOperation): static
+    {
+        if (!$this->assemblyOperations->contains($assemblyOperation)) {
+            $this->assemblyOperations->add($assemblyOperation);
+            $assemblyOperation->setAssemblyProcess($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAssemblyOperation(AssemblyOperation $assemblyOperation): static
+    {
+        if ($this->assemblyOperations->removeElement($assemblyOperation)) {
+            // set the owning side to null (unless already changed)
+            if ($assemblyOperation->getAssemblyProcess() === $this) {
+                $assemblyOperation->setAssemblyProcess(null);
+            }
+        }
 
         return $this;
     }

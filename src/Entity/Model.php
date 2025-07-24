@@ -5,12 +5,11 @@ namespace App\Entity;
 use App\Entity\Base\SlicerProfil;
 use App\Entity\Base\SubContractor;
 use App\Entity\Enum\Print3DStatusEnum;
+use App\Entity\Operation\AssemblyOperation;
 use App\Entity\Operation\FinishOperation;
 use App\Entity\Operation\TreatmentOperation;
-use App\Entity\Process\AssemblyProcess;
 use App\Entity\Process\Print3DMaterial;
 use App\Entity\Process\Print3DProcess;
-use App\Entity\Process\QualityProcess;
 use App\Repository\ModelRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -82,36 +81,23 @@ class Model
     #[ORM\OneToMany(targetEntity: FinishOperation::class, mappedBy: 'model')]
     private Collection $finishOperation;
 
-    /**
-     * @var Collection<int, AssemblyProcess>
-     */
-    #[ORM\ManyToMany(targetEntity: AssemblyProcess::class)]
-    private Collection $assemblyProcess;
-
-    #[ORM\Column]
-    private ?bool $isAssemblyDone = false;
-
-    /**
-     * @var Collection<int, QualityProcess>
-     */
-    #[ORM\ManyToMany(targetEntity: QualityProcess::class)]
-    private Collection $qualityProcess;
-
-    #[ORM\Column]
-    private ?bool $isQualityOk = false;
-
     #[ORM\Column(enumType: Print3DStatusEnum::class)]
     private ?Print3DStatusEnum $print3dStatus = Print3DStatusEnum::TODO;
 
     #[ORM\ManyToOne]
     private ?Project $project = null;
 
+    /**
+     * @var Collection<int, AssemblyOperation>
+     */
+    #[ORM\OneToMany(targetEntity: AssemblyOperation::class, mappedBy: 'model')]
+    private Collection $assemblyOperation;
+
     public function __construct()
     {
         $this->treatmentOperation = new ArrayCollection();
         $this->finishOperation = new ArrayCollection();
-        $this->assemblyProcess = new ArrayCollection();
-        $this->qualityProcess = new ArrayCollection();
+        $this->assemblyOperation = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -334,78 +320,6 @@ class Model
         return $this;
     }
 
-    /**
-     * @return Collection<int, AssemblyProcess>
-     */
-    public function getAssemblyProcess(): Collection
-    {
-        return $this->assemblyProcess;
-    }
-
-    public function addAssemblyProcess(AssemblyProcess $assemblyProcess): static
-    {
-        if (!$this->assemblyProcess->contains($assemblyProcess)) {
-            $this->assemblyProcess->add($assemblyProcess);
-        }
-
-        return $this;
-    }
-
-    public function removeAssemblyProcess(AssemblyProcess $assemblyProcess): static
-    {
-        $this->assemblyProcess->removeElement($assemblyProcess);
-
-        return $this;
-    }
-
-    public function isAssemblyDone(): ?bool
-    {
-        return $this->isAssemblyDone;
-    }
-
-    public function setIsAssemblyDone(bool $isAssemblyDone): static
-    {
-        $this->isAssemblyDone = $isAssemblyDone;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, QualityProcess>
-     */
-    public function getQualityProcess(): Collection
-    {
-        return $this->qualityProcess;
-    }
-
-    public function addQualityProcess(QualityProcess $qualityProcess): static
-    {
-        if (!$this->qualityProcess->contains($qualityProcess)) {
-            $this->qualityProcess->add($qualityProcess);
-        }
-
-        return $this;
-    }
-
-    public function removeQualityProcess(QualityProcess $qualityProcess): static
-    {
-        $this->qualityProcess->removeElement($qualityProcess);
-
-        return $this;
-    }
-
-    public function isQualityOk(): ?bool
-    {
-        return $this->isQualityOk;
-    }
-
-    public function setIsQualityOk(bool $isQualityOk): static
-    {
-        $this->isQualityOk = $isQualityOk;
-
-        return $this;
-    }
-
     public function getPrint3dStatus(): ?Print3DStatusEnum
     {
         return $this->print3dStatus;
@@ -430,6 +344,7 @@ class Model
         return $this;
     }
 
+    //@todo controller si utilisé
     public function updateUsedPresets(string $type, ?int $presetId, ?int $globalPresetId = null): void
     {
         if (!$this->usedPresets) {
@@ -444,6 +359,36 @@ class Model
         } else {
             unset($this->usedPresets[$type]);
         }
+    }
+
+    /**
+     * @return Collection<int, AssemblyOperation>
+     */
+    public function getAssemblyOperation(): Collection
+    {
+        return $this->assemblyOperation;
+    }
+
+    public function addAssemblyOperation(AssemblyOperation $assemblyOperation): static
+    {
+        if (!$this->assemblyOperation->contains($assemblyOperation)) {
+            $this->assemblyOperation->add($assemblyOperation);
+            $assemblyOperation->setModel($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAssemblyOperation(AssemblyOperation $assemblyOperation): static
+    {
+        if ($this->assemblyOperation->removeElement($assemblyOperation)) {
+            // set the owning side to null (unless already changed)
+            if ($assemblyOperation->getModel() === $this) {
+                $assemblyOperation->setModel(null);
+            }
+        }
+
+        return $this;
     }
 
 }

@@ -10,6 +10,7 @@ use App\Repository\Base\SoftwareRepository;
 use App\Repository\Base\SubContractorRepository;
 use App\Repository\Base\SlicerProfilRepository;
 use App\Repository\ModelRepository;
+use App\Repository\Operation\AssemblyOperationRepository;
 use App\Repository\Operation\FinishOperationRepository;
 use App\Repository\Operation\TreatmentOperationRepository;
 use App\Repository\Process\Print3DMaterialRepository;
@@ -170,6 +171,22 @@ class ListController extends AbstractController
             'items' => $models,
             'finishProcesses' => $processRepository->findBy(['isActive' => true]),
             'finishOperations' => $operationRepository->findBy(['model' => $models]),
+        ]);
+    }
+
+    #[Route('/assembly/project{id}', name: 'app_assembly_list')]
+    public function assemblyList(
+        Project                   $project,
+        ModelRepository           $modelRepository,
+        AssemblyProcessRepository   $processRepository,
+        AssemblyOperationRepository $operationRepository,
+    ): Response
+    {
+        $models = $modelRepository->findBy(['project' => $project]);
+        return $this->render('assembly/list.html.twig', [
+            'items' => $models,
+            'assemblyProcesses' => $processRepository->findBy(['isActive' => true]),
+            'assemblyOperations' => $operationRepository->findBy(['model' => $models]),
         ]);
     }
 

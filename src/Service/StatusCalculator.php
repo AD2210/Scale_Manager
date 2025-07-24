@@ -77,7 +77,7 @@ readonly class StatusCalculator
 
     public function calculateAssemblyProgress(Project $project): array
     {
-        return $this->calculateFromModelQuantity($project, fn($m) => $m->isAssemblyDone(), 'Aucun modèle à assembler');
+        return $this->calculateOperationProgress($project, 'getAssemblyOperation', 'Aucunes opération d\'assemblage trouvée');
     }
 
     public function calculateQualityProgress(Project $project): array

@@ -41,7 +41,7 @@
 
 {% block body %}
     <div class="row g-4">
-        {# Créons un macro pour réutiliser le code #}
+        {# Macro pour reutilisation simplifier du code #}
         {% macro progress_card(title, dataset, link = null) %}
             <div class="card h-100">
                 {% if link %}
@@ -214,7 +214,7 @@
         </div>
 
         <div class="col-md-3">
-            {{ components.progress_card('Assemblage', assemblyDataset) }}
+            {{ components.progress_card('Assemblage', assemblyDataset, path('app_assembly_list', {'id': project.id})) }}
         </div>
 
         <div class="col-md-3">
