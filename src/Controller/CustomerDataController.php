@@ -17,12 +17,13 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class CustomerDataController extends AbstractController
 {
+    //@todo controller si effectivement utilisé
     #[Route('/datas/project{id}', name: 'app_datas_list')]
     public function customerDataList(Project $project, CustomerDataRepository $repo, SoftwareRepository $softwareRepository): Response
     {
         return $this->render('customerData/list.html.twig', [
             'items' => $repo->findBy(['project' => $project]),
-            'softwares' => $softwareRepository->findAll(),
+            'softwares' => $softwareRepository->findBy(['isActive'=>true]),
         ]);
     }
 

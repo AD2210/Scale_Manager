@@ -52,7 +52,7 @@ export default class extends Controller {
                 console.error('ID du modèle non trouvé');
                 return;
             }
-            url = `/gamme/api/project/${projectId}/file/${fileId}/update`;
+            url = `/gamme/api/project/file/${fileId}/update`;
         } else {
             const presetId = new URLSearchParams(window.location.search).get('id');
             url = `/gamme/api/preset/${presetId}/update`;
@@ -72,16 +72,17 @@ export default class extends Controller {
                 const error = await response.json();
                 console.error('Erreur lors de la mise à jour:', error);
                 document.dispatchEvent(new CustomEvent('toast:error', {
-                    detail: {message: 'Erreur lors de la mise à jour' }
+                    detail: {message: 'Erreur lors de la mise à jour'}
                 }));
             }
 
         } catch (error) {
             console.error('Erreur lors de la requête:', error);
             document.dispatchEvent(new CustomEvent('toast:error', {
-                detail: {message: 'Erreur lors de la requête' }
+                detail: {message: 'Erreur lors de la requête'}
             }));
         }
+        window.location.reload();
     }
 
     // Methode de chargement des Presets
@@ -96,7 +97,7 @@ export default class extends Controller {
             // Mettre à jour le preset dans le modèle
             await this.updateField({
                 target: {
-                    dataset: { gammeFieldParam: 'print3dPreset' },
+                    dataset: {gammeFieldParam: 'print3dPreset'},
                     value: event.target.value
                 }
             });
@@ -110,7 +111,7 @@ export default class extends Controller {
                         // Déclencher la mise à jour pour chaque champ
                         await this.updateField({
                             target: {
-                                dataset: { gammeFieldParam: field },
+                                dataset: {gammeFieldParam: field},
                                 value: value
                             }
                         });
@@ -131,7 +132,7 @@ export default class extends Controller {
                 // Mettre à jour le preset dans le modèle
                 await this.updateField({
                     target: {
-                        dataset: { gammeFieldParam: 'treatmentPreset' },
+                        dataset: {gammeFieldParam: 'treatmentPreset'},
                         value: event.target.value
                     }
                 });
@@ -155,7 +156,7 @@ export default class extends Controller {
                         // Mettre à jour les opérations dans le modèle
                         await this.updateField({
                             target: {
-                                dataset: { gammeFieldParam: 'treatmentOperations' },
+                                dataset: {gammeFieldParam: 'treatmentOperations'},
                                 value: data.processes.map(p => p.value)
                             }
                         });
@@ -165,7 +166,7 @@ export default class extends Controller {
         } catch (error) {
             console.error('Erreur lors du chargement du preset:', error);
             document.dispatchEvent(new CustomEvent('toast:error', {
-                detail: { message: 'Erreur lors du chargement du preset' }
+                detail: {message: 'Erreur lors du chargement du preset'}
             }));
 
         }
@@ -179,7 +180,7 @@ export default class extends Controller {
             // Mettre à jour le preset dans le modèle
             await this.updateField({
                 target: {
-                    dataset: { gammeFieldParam: 'finishPreset' },
+                    dataset: {gammeFieldParam: 'finishPreset'},
                     value: event.target.value
                 }
             });
@@ -207,7 +208,7 @@ export default class extends Controller {
                         // Mettre à jour les opérations dans le modèle
                         await this.updateField({
                             target: {
-                                dataset: { gammeFieldParam: 'finishOperations' },
+                                dataset: {gammeFieldParam: 'finishOperations'},
                                 value: data.processes.map(p => p.value)
                             }
                         });
@@ -217,7 +218,7 @@ export default class extends Controller {
         } catch (error) {
             console.error('Erreur lors du chargement du preset de finition:', error);
             document.dispatchEvent(new CustomEvent('toast:error', {
-                detail: { message: 'Erreur lors du chargement du preset' }
+                detail: {message: 'Erreur lors du chargement du preset'}
             }));
 
         }
@@ -231,7 +232,7 @@ export default class extends Controller {
             // Mettre à jour le preset global dans le modèle
             await this.updateField({
                 target: {
-                    dataset: { gammeFieldParam: 'globalPreset' },
+                    dataset: {gammeFieldParam: 'globalPreset'},
                     value: event.target.value
                 }
             });
@@ -271,7 +272,7 @@ export default class extends Controller {
         } catch (error) {
             console.error('Erreur lors du chargement du preset global:', error);
             document.dispatchEvent(new CustomEvent('toast:error', {
-                detail: { message: 'Erreur lors du chargement du preset 3D' }
+                detail: {message: 'Erreur lors du chargement du preset 3D'}
             }));
 
         }
@@ -345,7 +346,7 @@ export default class extends Controller {
         }
     }
 
-// Methodes de sauvegarde des preset
+// Methodes de sauvegarde des presets
     async savePrint3DPreset(event) {
         console.log('gamme#savePrint3DPreset');
         const name = this.newPrint3DPresetNameTarget.value;
@@ -367,8 +368,8 @@ export default class extends Controller {
         }
 
         const url = selectedPresetId && !name
-            ? `/gamme/api/preset/print3d/${selectedPresetId}/update`
-            : '/gamme/api/preset/save-print3d';
+            ? `/gamme/api/preset/update/print3d/${selectedPresetId}`
+            : '/gamme/api/preset/save/print3d';
 
         const response = await fetch(url, {
             method: 'POST',
@@ -382,7 +383,7 @@ export default class extends Controller {
         if (response.ok) {
             //window.location.reload();
             document.dispatchEvent(new CustomEvent('toast:success', {
-                detail: { message: 'Preset impression 3D sauvegardé avec succès' }
+                detail: {message: 'Preset impression 3D sauvegardé avec succès'}
             }));
         }
     }
@@ -399,8 +400,8 @@ export default class extends Controller {
             .map(option => option.value);
 
         const url = selectedPresetId && !name
-            ? `/gamme/preset/treatment/${selectedPresetId}/update`
-            : '/gamme/preset/treatment/save';
+            ? `/gamme/api/preset/update/treatment/${selectedPresetId}`
+            : '/gamme/api/preset/save/treatment';
 
         const response = await fetch(url, {
             method: 'POST',
@@ -417,7 +418,7 @@ export default class extends Controller {
         if (response.ok) {
             //window.location.reload();
             document.dispatchEvent(new CustomEvent('toast:success', {
-                detail: { message: 'Preset traitement sauvegardé avec succès' }
+                detail: {message: 'Preset traitement sauvegardé avec succès'}
             }));
         }
     }
@@ -434,8 +435,8 @@ export default class extends Controller {
             .map(option => option.value);
 
         const url = selectedPresetId && !name
-            ? `/gamme/preset/finish/${selectedPresetId}/update`
-            : '/gamme/preset/finish/save';
+            ? `/gamme/api/preset/update/finish/${selectedPresetId}`
+            : '/gamme/api/preset/save/finish';
 
         const response = await fetch(url, {
             method: 'POST',
@@ -452,7 +453,7 @@ export default class extends Controller {
         if (response.ok) {
             //window.location.reload();
             document.dispatchEvent(new CustomEvent('toast:success', {
-                detail: { message: 'Preset finition sauvegardé avec succès' }
+                detail: {message: 'Preset finition sauvegardé avec succès'}
             }));
         }
     }
@@ -470,8 +471,8 @@ export default class extends Controller {
         const finishPreset = document.querySelector('select[data-gamme-field-param="finishPreset"]')?.value;
 
         const url = selectedPresetId && !name
-            ? `/gamme/preset/global/${selectedPresetId}/update`
-            : '/gamme/preset/global/save';
+            ? `/gamme/api/preset/update/global/${selectedPresetId}`
+            : '/gamme/api/preset/save/global';
 
         const response = await fetch(url, {
             method: 'POST',
@@ -490,13 +491,13 @@ export default class extends Controller {
         if (response.ok) {
             //window.location.reload();
             document.dispatchEvent(new CustomEvent('toast:success', {
-                detail: { message: 'Preset global sauvegardé avec succès' }
+                detail: {message: 'Preset global sauvegardé avec succès'}
             }));
         } else {
             const errorData = await response.json();
             console.error('Erreur lors de la sauvegarde:', errorData);
             document.dispatchEvent(new CustomEvent('toast:error', {
-                detail: { message: 'Erreur lors du chargement du preset' }
+                detail: {message: 'Erreur lors du chargement du preset'}
             }));
         }
     }
@@ -506,7 +507,7 @@ export default class extends Controller {
         console.log('gamme#handleTomSelectChange');
         await this.updateField({
             target: {
-                dataset: { gammeFieldParam: event.target.dataset.gammeFieldParam },
+                dataset: {gammeFieldParam: event.target.dataset.gammeFieldParam},
                 tomselect: event.target.tomselect,
                 value: event.target.tomselect.getValue()
             }

@@ -3,13 +3,12 @@
 namespace App\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
-use PhpParser\Builder\Class_;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-class EntityManagerService
+readonly class EntityManagerService
 {
     public function __construct(
-        private readonly FileManagerService $fileManager,
+        private FileManagerService     $fileManager,
         private EntityManagerInterface $em
     )
     {
@@ -43,20 +42,31 @@ class EntityManagerService
             }
         }
 
-
-        if (in_array($field, ['fileLink', 'methodLink'])) {
-            if ($value instanceof UploadedFile) {
-                $value = $this->fileManager->handleFileUpload($value);
-            }
+        if (in_array($field, ['fileLink', 'methodLink']) && $value instanceof UploadedFile) {
+            // Récupérer le type d'entité à partir de la configuration
+            $entityType = $this->getEntityTypeFromClass(get_class($entity));
+            $value = $this->fileManager->handleFileUpload($value, $entityType);
         }
 
-        if (in_array($field, ['isSpecific', 'isActive'])) { //@todo vérifier que le test Bool ne sert à rien car Update
+        if (in_array($field, ['isSpecific', 'isActive'])) {
             $value = (bool)$value;
         } elseif (is_string($value)) {
             $value = trim($value);
         }
 
         $entity->$setter($value);
+    }
+
+    private function getEntityTypeFromClass(string $className): string
+    {
+        // Conversion du nom de classe en type d'entité
+        $map = [
+            'App\Entity\Base\SlicerProfil' => 'slicer_profil',
+            'App\Entity\Process\AssemblyProcess' => 'assembly_process',
+            'App\Entity\Process\QualityProcess' => 'quality_process',
+        ];
+
+        return $map[$className] ?? '';
     }
 
     public function updateManyToManyRelations($entity, string $field, mixed $value, array $relation): void
@@ -90,7 +100,7 @@ class EntityManagerService
             return;
         }
 
-        if ($value === null) {
+        if ($value === null || $value === '') {
             $entity->$setter(null);
             return;
         }

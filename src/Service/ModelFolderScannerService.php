@@ -4,8 +4,6 @@ namespace App\Service;
 
 use App\Entity\Model;
 use App\Entity\Project;
-use App\Repository\CustomerDataRepository;
-use App\Repository\ModelRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;

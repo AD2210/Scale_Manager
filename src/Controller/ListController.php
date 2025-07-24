@@ -9,7 +9,6 @@ use App\Repository\Base\ManagerRepository;
 use App\Repository\Base\SoftwareRepository;
 use App\Repository\Base\SubContractorRepository;
 use App\Repository\Base\SlicerProfilRepository;
-use App\Repository\CustomerDataRepository;
 use App\Repository\ModelRepository;
 use App\Repository\Operation\FinishOperationRepository;
 use App\Repository\Operation\TreatmentOperationRepository;
@@ -70,8 +69,8 @@ class ListController extends AbstractController
     {
         return $this->render('process/print3dMaterial/list.html.twig', [
             'items' => $repo->findAll(),
-            'treatments' => $treatRepo->findAll(),
-            'finishes' => $finishRepo->findAll(),
+            'treatments' => $treatRepo->findBy(['isActive' => true]),
+            'finishes' => $finishRepo->findBy(['isActive' => true]),
         ]);
     }
 
@@ -80,8 +79,8 @@ class ListController extends AbstractController
     {
         return $this->render('process/print3dProcess/list.html.twig', [
             'items' => $repo->findAll(),
-            'treatments' => $treatRepo->findAll(),
-            'finishes' => $finishRepo->findAll(),
+            'treatments' => $treatRepo->findBy(['isActive' => true]),
+            'finishes' => $finishRepo->findBy(['isActive' => true]),
         ]);
     }
 
@@ -122,51 +121,55 @@ class ListController extends AbstractController
     {
         return $this->render('model/list.html.twig', [
             'items' => $repo->findBy(['project' => $project]),
-            'slicerProfils' => $profilRepository->findAll(),
+            'slicerProfils' => $profilRepository->findBy(['isActive' => true]),
         ]);
     }
 
     #[Route('/print3d/project{id}', name: 'app_print3d_list')]
     public function print3dList(
-        Project $project,
-        ModelRepository $modelRepository,
-        Print3DProcessRepository $processRepository,
+        Project                   $project,
+        ModelRepository           $modelRepository,
+        Print3DProcessRepository  $processRepository,
         Print3DMaterialRepository $materialRepository
-    ): Response {
+    ): Response
+    {
         return $this->render('print3d/list.html.twig', [
             'items' => $modelRepository->findBy(['project' => $project]),
-            'print3dProcesses' => $processRepository->findAll(),
-            'print3dMaterials' => $materialRepository->findAll(),
+            'print3dProcesses' => $processRepository->findBy(['isActive' => true]),
+            'print3dMaterials' => $materialRepository->findBy(['isActive' => true]),
             'print3dStatuses' => Print3DStatusEnum::cases(),
         ]);
     }
 
     #[Route('/treatment/project{id}', name: 'app_treatment_list')]
     public function treatmentList(
-        Project $project,
-        ModelRepository $modelRepository,
-        TreatmentProcessRepository $processRepository,
+        Project                      $project,
+        ModelRepository              $modelRepository,
+        TreatmentProcessRepository   $processRepository,
         TreatmentOperationRepository $operationRepository,
-    ): Response {
-        //dd($processRepository->findAll());
+    ): Response
+    {
+        $models = $modelRepository->findBy(['project' => $project]);
         return $this->render('treatment/list.html.twig', [
-            'items' => $modelRepository->findBy(['project' => $project]),
-            'treatmentProcesses' => $processRepository->findAll(),
-            'treatmentOperations' => $operationRepository->findAll(),
+            'items' => $models,
+            'treatmentProcesses' => $processRepository->findBy(['isActive' => true]),
+            'treatmentOperations' => $operationRepository->findBy(['model' => $models]),
         ]);
     }
 
     #[Route('/finish/project{id}', name: 'app_finish_list')]
     public function finishList(
-        Project $project,
-        ModelRepository $modelRepository,
-        FinishProcessRepository $processRepository,
+        Project                   $project,
+        ModelRepository           $modelRepository,
+        FinishProcessRepository   $processRepository,
         FinishOperationRepository $operationRepository,
-    ): Response {
+    ): Response
+    {
+        $models = $modelRepository->findBy(['project' => $project]);
         return $this->render('finish/list.html.twig', [
-            'items' => $modelRepository->findBy(['project' => $project]),
-            'finishProcesses' => $processRepository->findAll(),
-            'finishOperations' => $operationRepository->findAll(),
+            'items' => $models,
+            'finishProcesses' => $processRepository->findBy(['isActive' => true]),
+            'finishOperations' => $operationRepository->findBy(['model' => $models]),
         ]);
     }
 

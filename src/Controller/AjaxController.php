@@ -5,7 +5,10 @@ namespace App\Controller;
 use App\Entity\Project;
 use App\Service\CustomerDataFolderScannerService;
 use App\Service\ModelFolderScannerService;
+use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
+use InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -15,10 +18,10 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class AjaxController extends AbstractController
 {
-    #[Route('/ajax/project/{id}/archive', name: 'app_ajax_project_archive')]
+    #[Route('/api/project/{id}/archive', name: 'app_api_project_archive')]
     public function archive(Project $project, EntityManagerInterface $em): JsonResponse
     {
-        $project->setIsArchived(!$project->isArchived());
+        $project->setIsArchived($project->isArchived());
         $em->flush();
 
         return new JsonResponse([
@@ -27,7 +30,7 @@ final class AjaxController extends AbstractController
         ]);
     }
 
-    #[Route('/ajax/project/{id}/deadline', name: 'ajax_project_deadline', methods: ['POST'])]
+    #[Route('/api/project/{id}/deadline', name: 'app_api_project_deadline', methods: ['POST'])]
     public function updateDeadline(
         Request $request,
         Project $project,
@@ -45,16 +48,17 @@ final class AjaxController extends AbstractController
         }
 
         try {
-            $project->setDeadline(new \DateTime($date));
+            $project->setDeadline(new DateTime($date));
             $em->flush();
 
             return new JsonResponse(['success' => true]);
-        } catch (\Exception $e) {
-            return new JsonResponse(['error' => 'Erreur lors de la mise à jour'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        } catch (Exception $e) {
+            return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
-    #[Route('/ajax/project/{id}/customer-data-link', name: 'ajax_project_customer_data_link', methods: ['POST'])]
+    //@todo controller si effectivement utilisé
+    #[Route('/api/project/{id}/customer-data-link', name: 'app_api_project_customer_data_link', methods: ['POST'])]
     public function updateCustomerDataLink(
         Request $request,
         Project $project,
@@ -77,8 +81,8 @@ final class AjaxController extends AbstractController
         return new JsonResponse(['success' => true]);
     }
 
-
-    #[Route('/ajax/project/{id}/model-link', name: 'ajax_project_model_link', methods: ['POST'])]
+    //@todo controller si effectivement utilisé
+    #[Route('/api/project/{id}/model-link', name: 'app_api_project_model_link', methods: ['POST'])]
     public function updateModelLink(
         Request $request,
         Project $project,
@@ -101,7 +105,7 @@ final class AjaxController extends AbstractController
         return new JsonResponse(['success' => true]);
     }
 
-    #[Route('/ajax/project/{id}/resync-folders', name: 'ajax_project_resync_folders', methods: ['POST'])]
+    #[Route('/api/project/{id}/sync-folders', name: 'app_api_project_sync_folders', methods: ['POST'])]
     public function resyncFolders(
         Project $project,
         Request $request,
@@ -120,7 +124,8 @@ final class AjaxController extends AbstractController
         ]);
     }
 
-    #[Route('/ajax/project/{id}/upload/{type}', name: 'ajax_project_file_upload', methods: ['POST'])]
+    //@todo controller si effectivement utilisé
+    #[Route('/api/project/{id}/upload/{type}', name: 'app_api_project_file_upload', methods: ['POST'])]
     public function uploadFile(Project $project, string $type, Request $request, ParameterBagInterface $params, EntityManagerInterface $em): JsonResponse
     {
         $file = $request->files->get('file');
@@ -135,20 +140,21 @@ final class AjaxController extends AbstractController
         match ($type) {
             'quote' => $project->setQuoteLink($path . '/' . $filename),
             'specification' => $project->setSpecificationLink($path . '/' . $filename),
-            default => throw new \InvalidArgumentException('Type invalide'),
+            default => throw new InvalidArgumentException('Type invalide'),
         };
 
         $em->flush();
         return new JsonResponse(['success' => true]);
     }
 
-    #[Route('/ajax/project/{id}/delete/{type}', name: 'ajax_project_file_delete', methods: ['POST'])]
-    public function deleteFile(Project $project, string $type, ParameterBagInterface $params, EntityManagerInterface $em): JsonResponse
+    //@todo controller si effectivement utilisé
+    #[Route('/api/project/{id}/delete/{type}', name: 'app_api_project_file_delete', methods: ['POST'])]
+    public function deleteFile(Project $project, string $type, EntityManagerInterface $em): JsonResponse
     {
         $filePath = match ($type) {
             'quote' => $project->getQuoteLink(),
             'specification' => $project->getSpecificationLink(),
-            default => throw new \InvalidArgumentException('Type invalide'),
+            default => throw new InvalidArgumentException('Type invalide'),
         };
 
         if ($filePath && file_exists($filePath)) {
