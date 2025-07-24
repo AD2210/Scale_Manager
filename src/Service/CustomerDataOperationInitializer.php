@@ -8,6 +8,7 @@ use App\Entity\Operation\CustomerDataOperation;
 use App\Entity\Project;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
+use Exception;
 
 class CustomerDataOperationInitializer
 {
@@ -47,8 +48,8 @@ class CustomerDataOperationInitializer
 
                         // Ajouter à la collection de CustomerData
                         $customerData->addCustomerDataOperation($dataOperation);
-                    } catch (\Exception $e) {
-                        // Log l'erreur mais continue le processus
+                    } catch (Exception $e) {
+                        // Log l'erreur, mais continue le processus
                         error_log(sprintf(
                             "Erreur lors de l'initialisation de l'opération pour CustomerData ID: %d, Software ID: %d - %s",
                             $customerData->getId(),
@@ -62,7 +63,7 @@ class CustomerDataOperationInitializer
 
         try {
             $this->em->flush();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             error_log("Erreur lors de la sauvegarde des opérations: " . $e->getMessage());
             throw $e; // Remonter l'erreur pour la gestion au niveau supérieur
         }

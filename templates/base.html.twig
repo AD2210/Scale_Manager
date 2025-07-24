@@ -17,7 +17,6 @@
 
     {% block javascripts %}
         {{ encore_entry_script_tags('app') }}
-        {{ ux_controller_link_tags() }}
     {% endblock %}
 </head>
 <body class="d-flex flex-column h-100 overflow-hidden" data-page="{{ app.request.attributes.get('_route') }}"

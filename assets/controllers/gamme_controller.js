@@ -52,7 +52,7 @@ export default class extends Controller {
                 console.error('ID du modèle non trouvé');
                 return;
             }
-            url = `/gamme/api/project/${projectId}/file/${fileId}/update`;
+            url = `/gamme/api/project/file/${fileId}/update`;
         } else {
             const presetId = new URLSearchParams(window.location.search).get('id');
             url = `/gamme/api/preset/${presetId}/update`;

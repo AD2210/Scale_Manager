@@ -15,9 +15,9 @@ readonly class PresetManagerService
         private PresetApplicationService $presetApplication
     ) {}
 
+    //@todo si utilisé
     public function handlePresetApplication(Model $model, string $type, int $presetId, ?int $globalPresetId = null): void
     {
-        dd('handle');
         $preset = $this->presetRepository->getPresetById($type, $presetId);
         $currentValues = $this->getCurrentValues($model, $type);
 

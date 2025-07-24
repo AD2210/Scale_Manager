@@ -2,18 +2,12 @@
 
 namespace App\Service\Preset;
 
-use App\Entity\Preset\GlobalPreset;
 use App\Repository\ModelRepository;
-use App\Repository\Preset\FinishPresetRepository;
-use App\Repository\Preset\GlobalPresetRepository;
-use App\Repository\Preset\Print3DPresetRepository;
-use App\Repository\Preset\TreatmentPresetRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Serializer\SerializerInterface;
 
 readonly class PresetService
 {

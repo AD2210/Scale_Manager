@@ -5,7 +5,6 @@ namespace App\Form;
 use App\Entity\Project;
 use App\Entity\Base\Customer;
 use App\Entity\Base\Manager;
-use App\Entity\Process\QualityProcess;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;

@@ -12,10 +12,6 @@ use App\Entity\Preset\TreatmentPreset;
 use App\Repository\RepositoryProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
-use Symfony\Component\Serializer\SerializerInterface;
 
 readonly class PresetUpdaterService
 {
@@ -198,7 +194,7 @@ readonly class PresetUpdaterService
         $print3dMaterial = $value ? $this->repositories->getPrint3DMaterialRepository()->find($value) : null;
         // On set le process ou null si vide ou null
         $model->setPrint3dMaterial($print3dMaterial);
-        //On set les process de traitement ou finition défini par défaut dans le materiau d'impression
+        //On set les process de traitement ou finition défini par défaut dans le materiel d'impression
         $this->updateModelTreatmentOperations($model, $print3dMaterial->getTreatmentProcess()->toArray());
         $this->updateModelFinishOperations($model, $print3dMaterial->getFinishProcess()->toArray());
     }

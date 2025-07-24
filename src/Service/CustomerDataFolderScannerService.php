@@ -9,7 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
-class CustomerDataFolderScannerService
+readonly class CustomerDataFolderScannerService
 {
     public function __construct(
         private EntityManagerInterface $em,

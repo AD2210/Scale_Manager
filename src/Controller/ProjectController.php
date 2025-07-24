@@ -12,15 +12,12 @@ use App\Service\ModelFolderScannerService;
 use App\Service\StatusCalculator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Config\Definition\Exception\Exception;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\String\Slugger\SluggerInterface;
 
 final class ProjectController extends AbstractController
 {
@@ -34,7 +31,7 @@ final class ProjectController extends AbstractController
     }
 
     #[Route('/project/new', name: 'app_project_new')]
-    public function new(
+    public function create(
         Request $request,
         EntityManagerInterface $em,
         FileManagerService $fileManager,
@@ -81,8 +78,8 @@ final class ProjectController extends AbstractController
     ): Response
     {
         // On scan les dossiers projet pour Maj en bdd
-        $customerDataFolderScannerService->scan($project, false);
-        $modelFolderScannerService->scan($project, false);
+        $customerDataFolderScannerService->scan($project);
+        $modelFolderScannerService->scan($project);
 
         // On actualise l'avancée du projet
         $modelDataset = $statusCalculator->calculateModelProgress($project);

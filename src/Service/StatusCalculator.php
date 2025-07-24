@@ -4,20 +4,15 @@ namespace App\Service;
 
 use App\Entity\Enum\Print3DStatusEnum;
 use App\Entity\Project;
-use App\Repository\Operation\CustomerDataOperationRepository;
 use App\Repository\CustomerDataRepository;
 use App\Repository\ModelRepository;
-use App\Repository\Process\FinishProcessRepository;
-use App\Repository\Process\TreatmentProcessRepository;
+use Exception;
 
 readonly class StatusCalculator
 {
     public function __construct(
         private CustomerDataRepository          $customerDataRepository,
-        private CustomerDataOperationRepository $customerDataOperationRepository,
         private ModelRepository                 $modelRepository,
-        //private TreatmentProcessRepository     $treatmentRepository,
-        //private FinishProcessRepository         $finishRepository,
     )
     {
     }
@@ -54,7 +49,7 @@ readonly class StatusCalculator
             $progress = $total > 0 ? round(($done / $total) * 100, 2) : 0;
 
             return compact('done', 'total', 'progress');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             error_log('Erreur dans calculateCustomerDataProgress: ' . $e->getMessage());
             error_log($e->getTraceAsString());
             throw $e;

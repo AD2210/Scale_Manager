@@ -3,14 +3,13 @@
 namespace App\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
-use PhpParser\Builder\Class_;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-class EntityManagerService
+readonly class EntityManagerService
 {
     public function __construct(
-        private readonly FileManagerService $fileManager,
-        private EntityManagerInterface      $em
+        private FileManagerService     $fileManager,
+        private EntityManagerInterface $em
     )
     {
     }

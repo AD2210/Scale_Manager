@@ -55,9 +55,8 @@ class GammeController extends AbstractController
         return $this->presetService->loadPreset($type, $id);
     }
 
-    //@todo supprimer l'id projet qui est inutile ici (l'id du file garantie l'unicité de la route)
-    #[Route('/api/project/{projectId}/file/{fileId}/update', name: 'app_gamme_update_model', methods: ['POST'])]
-    public function updateModel(int $projectId, int $fileId, Request $request): JsonResponse
+    #[Route('/api/project/file/{fileId}/update', name: 'app_gamme_update_model', methods: ['POST'])]
+    public function updateModel(int $fileId, Request $request): JsonResponse
     {
         return $this->presetService->updateModel($fileId, $request);
     }
