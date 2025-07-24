@@ -10,7 +10,7 @@ class EntityManagerService
 {
     public function __construct(
         private readonly FileManagerService $fileManager,
-        private EntityManagerInterface $em
+        private EntityManagerInterface      $em
     )
     {
     }
@@ -101,7 +101,7 @@ class EntityManagerService
             return;
         }
 
-        if ($value === null) {
+        if ($value === null || $value === '') {
             $entity->$setter(null);
             return;
         }
