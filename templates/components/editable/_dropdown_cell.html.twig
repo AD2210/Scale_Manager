@@ -9,9 +9,9 @@
                 class="btn btn-outline-secondary dropdown-toggle w-100"
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
-                {{ disabled|default(false) ? 'disabled' : '' }}>
+            {{ disabled|default(false) ? 'disabled' : '' }}>
             {% if value is not null and value is not empty %}
-                {% if value is iterable and value is not empty %}
+                {% if value is iterable and value.name is not defined %}
                     {% for item in value %}
                         {{ item.name }}{% if not loop.last %}, {% endif %}
                     {% endfor %}
@@ -34,7 +34,7 @@
                                {% if value is null %}checked{% endif %}
                                data-operation-id="{% if value.id is defined %}{{ value.id }}{% endif %}"
                                data-action="change->editable#update"
-                               {{ disabled|default(false) ? 'disabled' : '' }}>
+                            {{ disabled|default(false) ? 'disabled' : '' }}>
                         {{ placeholder }}
                     </label>
                 </li>
@@ -46,18 +46,19 @@
                                type="{{ multiple is defined and not multiple ? 'radio' : 'checkbox' }}"
                                name="{{ name }}_{{ entityId }}"
                                value="{{ item.id }}"
-                               {% if multiple is not defined or multiple %}
-                                   {% if value is iterable %}
-                                       {% if item in value %}checked{% endif %}
-                                   {% endif %}
-                               {% else %}
-                                   {% if value %}
-                                       {% if field == 'treatmentProcess' and item.id == value.treatmentProcessId %}checked{% endif %}
-                                       {% if field == 'finishProcess' and item.id == value.finishProcessId %}checked{% endif %}
-                                   {% endif %}
-                               {% endif %}
+                            {% if multiple is not defined or multiple %}
+                                {% if value is iterable %}
+                                    {% if item in value %}checked{% endif %}
+                                {% endif %}
+                            {% else %}
+                                {% if value %}
+                                    {% if item.id == value.id %}checked{% endif %}
+                                    {% if field == 'treatmentProcess' and item.id == value.treatmentProcessId %}checked{% endif %}
+                                    {% if field == 'finishProcess' and item.id == value.finishProcessId %}checked{% endif %}
+                                {% endif %}
+                            {% endif %}
                                data-action="change->editable#update"
-                               {{ disabled|default(false) ? 'disabled' : '' }}>
+                            {{ disabled|default(false) ? 'disabled' : '' }}>
                         {{ item.name }}
                     </label>
                 </li>
