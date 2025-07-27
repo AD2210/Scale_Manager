@@ -20,7 +20,7 @@
 {% block table_head %}
     <tr>
         <th class="col-2">Fichier</th>
-        {% for i in 0..maxAssemblies %}
+        {% for i in 1..maxAssemblies %}
             <th class="col-2">Assemblage {{ i }}</th>
             <th class="text-center col-1">Terminé</th>
         {% endfor %}
@@ -38,7 +38,7 @@
             {# Assemblage existants triés par ordre de création #}
             {% set operations = item.assemblyOperation|sort((a, b) => a.id <=> b.id) %}
 
-            {% for i in 0..maxAssemblies %}
+            {% for i in 1..maxAssemblies %}
                 {% set operation = operations[i - 1] is defined ? operations[i - 1] : null %}
 
                 {% include 'components/editable/_dropdown_cell.html.twig' with {

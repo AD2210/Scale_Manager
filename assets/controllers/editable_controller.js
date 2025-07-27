@@ -54,9 +54,9 @@ export default class extends Controller {
 
         // Configuration de la requête selon le type d'opération
         if (!options) {
-            if ((this.typeValue === 'treatmentOperation' || this.typeValue === 'finishOperation') && this.fieldValue === 'isDone') {
-                // Cas spécifique pour la mise à jour du isDone des opérations de traitement et de finition
-                const operationType = this.typeValue === 'treatmentOperation' ? 'treatment' : 'finish';
+            if ((this.typeValue.replace(/^.*?([A-Z][a-zA-Z]*)$/, "$1") === 'Operation' ) && this.fieldValue === 'isDone') {
+                // Cas spécifique pour la mise à jour du isDone des opérations
+                const operationType = this.typeValue.replace(/[A-Z][a-zA-Z]*$/, ''); //extrait la première chaine du camelCase
                 options = {
                     method: 'POST',
                     headers: {
@@ -70,8 +70,8 @@ export default class extends Controller {
                     })
                 }
                 url = `/api/${operationType}/operation/${target.closest('tr').dataset.id}`
-            } else if ((this.typeValue === 'model' && (this.fieldValue === 'treatmentProcess' || this.fieldValue === 'finishProcess'))){
-                const operationType = this.fieldValue === 'treatmentProcess' ? 'treatment' : 'finish';
+            } else if ((this.typeValue === 'model' && (this.fieldValue.replace(/^.*?([A-Z][a-zA-Z]*)$/, "$1") === 'Process' ))){
+                const operationType = this.fieldValue.replace(/[A-Z][a-zA-Z]*$/, ''); //extrait la première chaine du camelCase
                 const operationId = target.dataset.operationId || td.dataset.operationId
                 options = {
                     method: 'POST',
@@ -128,7 +128,7 @@ export default class extends Controller {
                         detail: {message: 'Mise à jour effectuée avec succès'}
                     }))
 
-                    // Recharger la page uniquement pour l'ajout d'une nouvelle opération de traitement
+                    // On recharge la page.
                     if (this.typeValue === 'model' && this.fieldValue === 'treatmentProcess') {
                         window.location.reload()
                     }
