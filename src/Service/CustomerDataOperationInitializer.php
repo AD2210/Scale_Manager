@@ -8,6 +8,7 @@ use App\Entity\Operation\CustomerDataOperation;
 use App\Entity\Project;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
+use Exception;
 
 class CustomerDataOperationInitializer
 {
@@ -22,18 +23,51 @@ class CustomerDataOperationInitializer
     }
 
     // Initialize les opérations sur données client en fct des softwares renseignés
-    public function init(Project $project) : void{
+    public function init(Project $project) : void
+    {
         $customerDatas = $this->customerDataRepo->findBy(['project' => $project]);
         $softwares = $this->softwareRepo->findAll();
+
         foreach ($customerDatas as $customerData) {
+            // Récupérer les opérations existantes pour ce CustomerData
+            $existingOperations = [];
+            foreach ($customerData->getCustomerDataOperations() as $operation) {
+                $key = $operation->getSoftware()->getId();
+                $existingOperations[$key] = true;
+            }
+
             foreach ($softwares as $software) {
-                $dataOperation = new CustomerDataOperation();
-                $dataOperation->setCustomerData($customerData);
-                $dataOperation->setSoftware($software);
-                $this->em->persist($dataOperation);
+                // Vérifier si l'opération existe déjà
+                if (!isset($existingOperations[$software->getId()])) {
+                    try {
+                        $dataOperation = new CustomerDataOperation();
+                        $dataOperation->setCustomerData($customerData);
+                        $dataOperation->setSoftware($software);
+                        $dataOperation->setIsDone(false);
+                        $this->em->persist($dataOperation);
+
+                        // Ajouter à la collection de CustomerData
+                        $customerData->addCustomerDataOperation($dataOperation);
+                    } catch (Exception $e) {
+                        // Log l'erreur, mais continue le processus
+                        error_log(sprintf(
+                            "Erreur lors de l'initialisation de l'opération pour CustomerData ID: %d, Software ID: %d - %s",
+                            $customerData->getId(),
+                            $software->getId(),
+                            $e->getMessage()
+                        ));
+                    }
+                }
             }
         }
-        $this->em->flush();
+
+        try {
+            $this->em->flush();
+        } catch (Exception $e) {
+            error_log("Erreur lors de la sauvegarde des opérations: " . $e->getMessage());
+            throw $e; // Remonter l'erreur pour la gestion au niveau supérieur
+        }
     }
+
 
 }

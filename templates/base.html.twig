@@ -12,17 +12,19 @@
     <title>{% block title %}Scale Manager{% endblock %}</title>
 
     {% block stylesheets %}
-            {{ encore_entry_link_tags('app') }}
+        {{ encore_entry_link_tags('app') }}
     {% endblock %}
 
     {% block javascripts %}
-            {{ encore_entry_script_tags('app') }}
+        {{ encore_entry_script_tags('app') }}
     {% endblock %}
 </head>
-<body class="d-flex flex-column h-100 overflow-hidden" data-page="{{ app.request.attributes.get('_route') }}" data-entity="{{ entityClass|default('') }}">
+<body class="d-flex flex-column h-100 overflow-hidden" data-page="{{ app.request.attributes.get('_route') }}"
+      data-entity="{{ entityClass|default('') }}">
 <main class="d-flex flex-nowrap vh-100 overflow-hidden">
     <div class="d-flex flex-column flex-shrink-0 py-4 px-3 bg-body-tertiary border-end" style="width: 250px;">
-        <a href="{{ path('app_project_index') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+        <a href="{{ path('app_project_index') }}"
+           class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
             <span class="fs-4">SCALE Manager</span> </a>
         <hr>
         <ul class="nav nav-pills flex-column mb-auto">
@@ -133,12 +135,21 @@
                 </div>
             </li>
             <!-- End DropDown Nav Button -->
+            <li class="nav-item">
+                <a href="{{ path('app_gamme_preset') }}" class="nav-link" aria-current="page">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-circle-nodes"></i>
+                        Gammes
+                    </div>
+                </a>
+            </li>
         </ul>
     </div>
     <!-- CONTENU PRINCIPAL -->
-    <div class="flex-grow-1">
+    <div class="flex-grow-1" {% block data_controller %}{% endblock %}>
         <!-- Barre contextuelle -->
-        <div class="bg-light border-bottom page-header d-flex justify-content-between align-items-center py-3 px-4 sticky-top">
+        <div
+            class="bg-light border-bottom page-header d-flex justify-content-between align-items-center py-3 px-4 sticky-top">
             {% block page_header %}
                 <h1 class="h4 m-0">Titre de la page</h1>
             {% endblock %}
@@ -157,6 +168,5 @@
          style="z-index: 1100">
     </div>
 </div>
-
 </body>
 </html>

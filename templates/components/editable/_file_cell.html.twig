@@ -8,7 +8,12 @@
                data-editable-type-value="{{ entityType }}"
                data-editable-field-value="{{ field }}"
                data-action="change->editable#update">
-        {% if view_route %}
+        {% if value %}
+            <div class="form-text small">
+                {{ value|split('/')|last }}
+            </div>
+        {% endif %}
+        {% if view_route and value %}
             <a class="btn btn-sm btn-outline-primary" href="{{ path(view_route, { id: entityId }) }}" target="_blank" title="Voir">
                 <i class="fa-solid fa-eye"></i>
             </a>

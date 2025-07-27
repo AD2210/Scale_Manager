@@ -1,0 +1,100 @@
+{% extends 'components/_table_wrapper.html.twig' %}
+
+{% set entityType = 'model' %}
+
+{% block title %}Impression 3D{% endblock %}
+
+{% block page_header %}
+    <h1 class="h4 mb-0">Impression 3D</h1>
+{% endblock %}
+
+{% block table_head %}
+    <tr>
+        <th>Fichier</th>
+        <th>Process</th>
+        <th>Matériau</th>
+        <th>Quantité</th>
+        <th class="text-center">Test</th>
+        <th>Statut</th>
+        <th class="text-center">Sous-traité</th>
+        <th>Fournisseur</th>
+        <th class="text-center">Réceptionné</th>
+    </tr>
+{% endblock %}
+
+{% block table_rows %}
+    {% for item in items %}
+        <tr data-id="{{ item.id }}">
+            {% include 'components/_text_readonly.html.twig' with {
+                value: item.fileName
+            } %}
+
+            {% include 'components/editable/_dropdown_cell.html.twig' with {
+                entityId: item.id,
+                entityType: entityType,
+                field: 'print3dProcess',
+                name: 'print3dProcess-radio',
+                value: item.print3dProcess,
+                items: print3dProcesses,
+                multiple: false,
+                placeholder: 'Aucun process'
+            } %}
+
+            {% include 'components/editable/_dropdown_cell.html.twig' with {
+                entityId: item.id,
+                entityType: entityType,
+                field: 'print3dMaterial',
+                name: 'print3dMaterial-radio',
+                value: item.print3dMaterial,
+                items: print3dMaterials,
+                multiple: false,
+                placeholder: 'Aucun matériau'
+            } %}
+
+            {% include 'components/editable/_int_cell.html.twig' with {
+                value: item.quantity,
+                field: 'quantity',
+                entityId: item.id,
+                entityType: entityType
+            } %}
+
+            {% include 'components/editable/_checkbox_cell.html.twig' with {
+                value: item.isNeedTest,
+                field: 'isNeedTest',
+                entityId: item.id,
+                entityType: entityType
+            } %}
+
+            {% include 'components/editable/_enum_cell.html.twig' with {
+                value: item.print3dStatus,
+                options: print3dStatuses,
+                name: 'print3dStatus-radio',
+                field: 'print3dStatus',
+                entityId: item.id,
+                entityType: entityType,
+                placeholder: 'Aucun Statut'
+            } %}
+
+            {% include 'components/editable/_checkbox_cell.html.twig' with {
+                value: item.isSubContracted,
+                field: 'isSubContracted',
+                entityId: item.id,
+                entityType: entityType
+            } %}
+
+            {% include 'components/editable/_text_cell.html.twig' with {
+                value: item.subcontractor ? item.subcontractor.name : '',
+                field: 'subcontractor',
+                entityId: item.id,
+                entityType: entityType
+            } %}
+
+            {% include 'components/editable/_checkbox_cell.html.twig' with {
+                value: item.isDelivered,
+                field: 'isDelivered',
+                entityId: item.id,
+                entityType: entityType
+            } %}
+        </tr>
+    {% endfor %}
+{% endblock %}

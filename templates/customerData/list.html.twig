@@ -1,0 +1,49 @@
+{% extends 'components/_table_wrapper.html.twig' %}
+
+{% set entityType = 'customerData' %}
+
+{% block title %}Données clients{% endblock %}
+
+{% block page_header %}
+    <h1 class="h4 mb-0">Données clients</h1>
+{% endblock %}
+
+{% block table_head %}
+    <tr>
+        <th class="col">Nom du fichier</th>
+        {% for software in softwares %}
+            <th class="col text-center">{{ software.name }}</th>
+        {% endfor %}
+    </tr>
+{% endblock %}
+
+{% block table_rows %}
+    {% for item in items %}
+        <tr data-id="{{ item.id }}">
+            {% include 'components/_text_readonly.html.twig' with {
+                value: item.fileName
+            } %}
+
+            {% for software in softwares %}
+                {% set isDone = false %}
+                {% if item.customerDataOperations is not empty %}
+                    {% for op in item.customerDataOperations %}
+                        {% if op.software and op.software.id == software.id %}
+                            {% set isDone = op.isDone %}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+
+                {% include 'components/editable/_checkbox_cell.html.twig' with {
+                    value: isDone,
+                    field: 'customerDataOperation',
+                    entityId: item.id,
+                    entityType: entityType,
+                    additionalData: {
+                        softwareId: software.id
+                    }
+                } %}
+            {% endfor %}
+        </tr>
+    {% endfor %}
+{% endblock %}

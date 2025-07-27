@@ -1,22 +1,64 @@
-<td class="editable"
-    data-controller="editable"
+<td class="editable {{ disabled|default(false) ? 'opacity-50' : '' }}"
+    data-controller="editable dropdown"
     data-editable-id-value="{{ entityId }}"
     data-editable-type-value="{{ entityType }}"
-    data-editable-field-value="{{ field }}">
+    data-editable-field-value="{{ field }}"
+    {% if value.id is defined %}data-operation-id="{{ value.id }}"{% endif %}>
     <div class="dropdown-multiselect" data-field="{{ field }}">
-        <button type="button" class="btn btn-outline-secondary dropdown-toggle w-100" data-bs-toggle="dropdown" aria-expanded="false">
-            {{ label is defined ? label : '' }}
+        <button type="button"
+                class="btn btn-outline-secondary dropdown-toggle w-100"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+            {{ disabled|default(false) ? 'disabled' : '' }}>
+            {% if value is not null and value is not empty %}
+                {% if value is iterable and value.name is not defined %}
+                    {% for item in value %}
+                        {{ item.name }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                {% else %}
+                    {{ value.name }}
+                {% endif %}
+            {% else %}
+                {{ placeholder|default('Sélectionner...') }}
+            {% endif %}
         </button>
+
         <ul class="dropdown-menu p-2" style="min-width: 200px;">
+            {% if multiple is defined and not multiple %}
+                <li>
+                    <label class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="{{ name }}_{{ entityId }}"
+                               value=""
+                               {% if value is null %}checked{% endif %}
+                               data-operation-id="{% if value.id is defined %}{{ value.id }}{% endif %}"
+                               data-action="change->editable#update"
+                            {{ disabled|default(false) ? 'disabled' : '' }}>
+                        {{ placeholder }}
+                    </label>
+                </li>
+            {% endif %}
             {% for item in items %}
                 <li>
                     <label class="form-check">
-                        <input class="form-check-input {{ name }}"
-                               type="checkbox"
-                               name="{{ field }}[]"
+                        <input class="form-check-input"
+                               type="{{ multiple is defined and not multiple ? 'radio' : 'checkbox' }}"
+                               name="{{ name }}_{{ entityId }}"
                                value="{{ item.id }}"
-                               {% if item in value|default([]) %}checked{% endif %}
-                               data-action="change->editable#update">
+                            {% if multiple is not defined or multiple %}
+                                {% if value is iterable %}
+                                    {% if item in value %}checked{% endif %}
+                                {% endif %}
+                            {% else %}
+                                {% if value %}
+                                    {% if item.id == value.id %}checked{% endif %}
+                                    {% if field == 'treatmentProcess' and item.id == value.treatmentProcessId %}checked{% endif %}
+                                    {% if field == 'finishProcess' and item.id == value.finishProcessId %}checked{% endif %}
+                                {% endif %}
+                            {% endif %}
+                               data-action="change->editable#update"
+                            {{ disabled|default(false) ? 'disabled' : '' }}>
                         {{ item.name }}
                     </label>
                 </li>

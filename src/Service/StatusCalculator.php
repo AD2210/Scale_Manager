@@ -4,52 +4,59 @@ namespace App\Service;
 
 use App\Entity\Enum\Print3DStatusEnum;
 use App\Entity\Project;
-use App\Repository\Operation\CustomerDataOperationRepository;
 use App\Repository\CustomerDataRepository;
 use App\Repository\ModelRepository;
-use App\Repository\Process\FinishProcessRepository;
-use App\Repository\Process\TreatmentProcessRepository;
+use Exception;
 
 readonly class StatusCalculator
 {
     public function __construct(
         private CustomerDataRepository          $customerDataRepository,
-        private CustomerDataOperationRepository $customerDataOperationRepository,
         private ModelRepository                 $modelRepository,
-        //private TreatmentProcessRepository     $treatmentRepository,
-        //private FinishProcessRepository         $finishRepository,
     )
     {
     }
 
     public function calculateCustomerDataProgress(Project $project): array
     {
-        $cds = $this->customerDataRepository->findBy(['project' => $project]);
-        $total = 0;
-        $done = 0;
-        $nbSoftware = 0;
+        try {
+            $cds = $this->customerDataRepository->findBy(['project' => $project]);
+            $total = 0;
+            $done = 0;
+            $nbSoftware = 0;
 
-        foreach ($cds as $cd) {
-            $softwareCount = $this->customerDataOperationRepository->count(['customerData' => $cd]);
-            $nbSoftware = max($nbSoftware, $softwareCount);
-            $total += $softwareCount;
-            $done += $this->customerDataOperationRepository->count(['customerData' => $cd, 'isDone' => true]);
+            foreach ($cds as $cd) {
+                $operations = $cd->getCustomerDataOperations();
+
+                $softwareCount = $operations->count();
+                $nbSoftware = max($nbSoftware, $softwareCount);
+                $total += $softwareCount;
+
+                $doneCount = $operations->filter(fn($op) => $op->isIsDone())->count();
+                $done += $doneCount;
+            }
+
+            if (empty($cds)) {
+                return ['error' => 'Aucune données dans le dossier'];
+            }
+
+            if ($nbSoftware === 0) {
+                return ['error' => 'Aucun logiciel n\'est configuré pour les fichiers client.'];
+            }
+
+            $total /= $nbSoftware;
+            $done /= $nbSoftware;
+            $progress = $total > 0 ? round(($done / $total) * 100, 2) : 0;
+
+            return compact('done', 'total', 'progress');
+        } catch (Exception $e) {
+            error_log('Erreur dans calculateCustomerDataProgress: ' . $e->getMessage());
+            error_log($e->getTraceAsString());
+            throw $e;
         }
-
-        if (empty($cds)) {
-            return ['error' => 'Aucune données dans le dossier'];
-        }
-
-        if ($nbSoftware === 0) {
-            return ['error' => 'Aucun logiciel n\'est configuré pour les fichiers client.'];
-        }
-
-        $total /= $nbSoftware;
-        $done /= $nbSoftware;
-        $progress = $total > 0 ? round(($done / $total) * 100, 2) : 0;
-
-        return compact('done', 'total', 'progress');
     }
+
+
 
     public function calculateModelProgress(Project $project): array
     {
@@ -70,12 +77,12 @@ readonly class StatusCalculator
 
     public function calculateAssemblyProgress(Project $project): array
     {
-        return $this->calculateFromModelQuantity($project, fn($m) => $m->isAssemblyDone(), 'Aucun modèle à assembler');
+        return $this->calculateOperationProgress($project, 'getAssemblyOperation', 'Aucunes opération d\'assemblage trouvée');
     }
 
     public function calculateQualityProgress(Project $project): array
     {
-        return $this->calculateFromModelQuantity($project, fn($m) => $m->isQualityOk(), 'Aucun modèle à contrôler');
+        return $this->calculateOperationProgress($project, 'getQualityOperation', 'Aucunes opération qualité trouvée');
     }
 
     public function calculateTreatmentProgress(Project $project): array

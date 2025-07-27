@@ -5,12 +5,13 @@ namespace App\Service;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-class EntityManagerService
+readonly class EntityManagerService
 {
     public function __construct(
-        private readonly FileManagerService $fileManager,
-        private readonly EntityManagerInterface $em
-    ) {
+        private FileManagerService     $fileManager,
+        private EntityManagerInterface $em
+    )
+    {
     }
 
     public function updateEntityField($entity, string $field, mixed $value, array $config): void
@@ -21,10 +22,30 @@ class EntityManagerService
             return;
         }
 
-        if (in_array($field, ['fileLink', 'methodLink'])) {
-            if ($value instanceof UploadedFile) {
-                $value = $this->fileManager->handleFileUpload($value);
+        if (isset($config['fields_config'][$field])) {
+            $fieldConfig = $config['fields_config'][$field];
+
+            if ($fieldConfig['type'] === 'relation') {
+                $this->updateEntityRelation($entity, $field, $value, $config);
+                return;
             }
+
+            if ($fieldConfig['type'] === 'enum') {
+                $enumClass = $fieldConfig['class'];
+                if ($value === null || $value === '') {
+                    $entity->$setter(null);
+                } else {
+                    $enumValue = constant("$enumClass::$value");
+                    $entity->$setter($enumValue);
+                }
+                return;
+            }
+        }
+
+        if (in_array($field, ['fileLink', 'methodLink']) && $value instanceof UploadedFile) {
+            // Récupérer le type d'entité à partir de la configuration
+            $entityType = $this->getEntityTypeFromClass(get_class($entity));
+            $value = $this->fileManager->handleFileUpload($value, $entityType);
         }
 
         if (in_array($field, ['isSpecific', 'isActive'])) {
@@ -34,6 +55,18 @@ class EntityManagerService
         }
 
         $entity->$setter($value);
+    }
+
+    private function getEntityTypeFromClass(string $className): string
+    {
+        // Conversion du nom de classe en type d'entité
+        $map = [
+            'App\Entity\Base\SlicerProfil' => 'slicer_profil',
+            'App\Entity\Process\AssemblyProcess' => 'assembly_process',
+            'App\Entity\Process\QualityProcess' => 'quality_process',
+        ];
+
+        return $map[$className] ?? '';
     }
 
     public function updateManyToManyRelations($entity, string $field, mixed $value, array $relation): void
@@ -55,4 +88,27 @@ class EntityManagerService
             }
         }
     }
+
+    public function updateEntityRelation($entity, string $field, mixed $value, array $config): void
+    {
+        if (!isset($config['fields_config'][$field]['entity'])) {
+            return;
+        }
+
+        $setter = 'set' . ucfirst($field);
+        if (!method_exists($entity, $setter)) {
+            return;
+        }
+
+        if ($value === null || $value === '') {
+            $entity->$setter(null);
+            return;
+        }
+
+        $relatedEntity = $this->em->getRepository($config['fields_config'][$field]['entity'])->find($value);
+        if ($relatedEntity) {
+            $entity->$setter($relatedEntity);
+        }
+    }
+
 }

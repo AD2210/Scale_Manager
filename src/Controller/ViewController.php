@@ -37,13 +37,11 @@ class ViewController extends AbstractController
             throw $this->createNotFoundException('Aucun fichier associé.');
         }
 
-        $fullPath = $this->getParameter('kernel.project_dir') . '/public' . $path;
-
-        if (!file_exists($fullPath)) {
+        if (!file_exists($path)) {
             throw $this->createNotFoundException('Fichier introuvable.');
         }
 
         /** @noinspection UseControllerShortcuts */
-        return new BinaryFileResponse($fullPath);
+        return new BinaryFileResponse($path);
     }
 }

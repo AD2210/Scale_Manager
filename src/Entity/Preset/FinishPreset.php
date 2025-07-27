@@ -2,6 +2,7 @@
 
 namespace App\Entity\Preset;
 
+use App\Entity\Process\FinishProcess;
 use App\Repository\Preset\FinishPresetRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -27,9 +28,16 @@ class FinishPreset
     #[ORM\Column]
     private ?bool $isActive = null;
 
+    /**
+     * @var Collection<int, FinishProcess>
+     */
+    #[ORM\ManyToMany(targetEntity: FinishProcess::class, inversedBy: 'finishPresets')]
+    private Collection $finishProcesses;
+
     public function __construct()
     {
         $this->globalPresets = new ArrayCollection();
+        $this->finishProcesses = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -87,6 +95,30 @@ class FinishPreset
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, FinishProcess>
+     */
+    public function getFinishProcesses(): Collection
+    {
+        return $this->finishProcesses;
+    }
+
+    public function addFinishProcess(FinishProcess $finishProcess): static
+    {
+        if (!$this->finishProcesses->contains($finishProcess)) {
+            $this->finishProcesses->add($finishProcess);
+        }
+
+        return $this;
+    }
+
+    public function removeFinishProcess(FinishProcess $finishProcess): static
+    {
+        $this->finishProcesses->removeElement($finishProcess);
 
         return $this;
     }

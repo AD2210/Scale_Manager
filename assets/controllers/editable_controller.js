@@ -1,4 +1,4 @@
-import { Controller } from '@hotwired/stimulus'
+import {Controller} from '@hotwired/stimulus'
 
 export default class extends Controller {
     static values = {
@@ -9,14 +9,36 @@ export default class extends Controller {
 
     update(event) {
         const target = event.target
-        let payload, options
+        let options, url, value
 
-        if (target.type === 'file') {
-            const formData = new FormData()
+        // Récupération des données additionnelles si présentes
+        const additionalData = {}
+        const td = target.closest('td')
+        if (td.dataset.additionalData) {
+            try {
+                Object.assign(additionalData, JSON.parse(td.dataset.additionalData))
+            } catch (e) {
+                console.error('Erreur parsing additionalData:', e)
+            }
+        }
+
+        // Détermination de la valeur selon le type d'input
+        if (target.closest('.dropdown-menu') && target.type === 'checkbox') {
+            // Cas des dropdowns à choix multiple
+            const checkboxes = target
+                .closest('.dropdown-menu')
+                .querySelectorAll('input[type="checkbox"]:checked')
+            value = Array.from(checkboxes).map(cb => cb.value)
+        } else if (target.type === 'checkbox') {
+            value = target.checked
+        } else if (target.type === 'file') {
+            // Cas des fichiers
             const file = target.files[0]
             if (!file) return
 
+            const formData = new FormData()
             formData.append(this.fieldValue, file)
+
             options = {
                 method: 'POST',
                 headers: {
@@ -25,33 +47,77 @@ export default class extends Controller {
                 },
                 body: formData
             }
+            url = `/generic/update/${this.typeValue}/${this.idValue}`
         } else {
-            let value = null
+            value = target.value
+        }
 
-            if (target.type === 'checkbox') {
-                if (target.closest('.dropdown-menu')) {
-                    const checkboxes = target
-                        .closest('td')
-                        .querySelectorAll('input[type="checkbox"]:checked')
-                    value = Array.from(checkboxes).map(cb => cb.value)
-                } else {
-                    value = target.checked
+        // Configuration de la requête selon le type d'opération
+        if (!options) {
+            if ((this.typeValue.replace(/^.*?([A-Z][a-zA-Z]*)$/, "$1") === 'Operation' ) && this.fieldValue === 'isDone') {
+                // Cas spécifique pour la mise à jour du isDone des opérations
+                const operationType = this.typeValue.replace(/[A-Z][a-zA-Z]*$/, ''); //extrait la première chaine du camelCase
+                options = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        field: this.fieldValue,
+                        value: value,
+                        entityId: this.idValue
+                    })
                 }
+                url = `/api/${operationType}/operation/${target.closest('tr').dataset.id}`
+            } else if ((this.typeValue === 'model' && (this.fieldValue.replace(/^.*?([A-Z][a-zA-Z]*)$/, "$1") === 'Process' ))){
+                const operationType = this.fieldValue.replace(/[A-Z][a-zA-Z]*$/, ''); //extrait la première chaine du camelCase
+                const operationId = target.dataset.operationId || td.dataset.operationId
+                options = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        field: this.fieldValue,
+                        value: value,
+                        operationId: operationId
+                    })
+                }
+                url = `/api/${operationType}/operation/${this.idValue}`
+            } else if (this.typeValue === 'customerData' && this.fieldValue === 'customerDataOperation') {
+                // Cas spécifique pour les opérations CustomerData
+                options = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        value: value,
+                        'software-id': additionalData.softwareId
+                    })
+                }
+                url = `/api/customer-data/${this.idValue}/operation`
             } else {
-                value = target.value
-            }
-
-            options = {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({ [this.fieldValue]: value })
+                // Cas standard pour toutes les autres mises à jour
+                options = {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        [this.fieldValue]: value,
+                        ...additionalData
+                    })
+                }
+                url = `/generic/update/${this.typeValue}/${this.idValue}`
             }
         }
 
-        fetch(`/generic/update/${this.typeValue}/${this.idValue}`, options)
+        fetch(url, options)
             .then(response => {
                 if (!response.ok) throw new Error('Échec de la mise à jour')
                 return response.json()
@@ -59,14 +125,19 @@ export default class extends Controller {
             .then(data => {
                 if (data.success) {
                     document.dispatchEvent(new CustomEvent('toast:success', {
-                        detail: { message: 'Mise à jour effectuée avec succès' }
+                        detail: {message: 'Mise à jour effectuée avec succès'}
                     }))
+
+                    // On recharge la page.
+                    if (this.typeValue === 'model') {
+                        window.location.reload()
+                    }
                 }
             })
             .catch(error => {
                 console.error('Erreur lors de la mise à jour:', error)
                 document.dispatchEvent(new CustomEvent('toast:error', {
-                    detail: { message: 'Erreur lors de la mise à jour' }
+                    detail: {message: 'Erreur lors de la mise à jour'}
                 }))
             })
     }

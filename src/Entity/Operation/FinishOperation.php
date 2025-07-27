@@ -16,7 +16,7 @@ class FinishOperation
     private ?int $id = null;
 
     #[ORM\Column]
-    private ?bool $isDone = null;
+    private bool $isDone = false;
 
     #[ORM\ManyToOne]
     private ?FinishProcess $finishProcess = null;
@@ -29,7 +29,7 @@ class FinishOperation
         return $this->id;
     }
 
-    public function isDone(): ?bool
+    public function isDone(): bool
     {
         return $this->isDone;
     }

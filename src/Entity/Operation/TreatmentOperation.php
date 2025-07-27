@@ -16,7 +16,7 @@ class TreatmentOperation
     private ?int $id = null;
 
     #[ORM\Column]
-    private ?bool $isDone = null;
+    private bool $isDone = false;
 
     #[ORM\ManyToOne]
     private ?TreatmentProcess $treatmentProcess = null;
@@ -29,7 +29,7 @@ class TreatmentOperation
         return $this->id;
     }
 
-    public function isDone(): ?bool
+    public function isDone(): bool
     {
         return $this->isDone;
     }

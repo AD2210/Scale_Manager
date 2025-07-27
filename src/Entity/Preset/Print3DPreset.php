@@ -2,6 +2,9 @@
 
 namespace App\Entity\Preset;
 
+use App\Entity\Base\SlicerProfil;
+use App\Entity\Process\Print3DMaterial;
+use App\Entity\Process\Print3DProcess;
 use App\Repository\Preset\Print3DPresetRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -26,6 +29,15 @@ class Print3DPreset
 
     #[ORM\Column]
     private ?bool $isActive = null;
+
+    #[ORM\ManyToOne(inversedBy: 'print3DPresets')]
+    private ?Print3DProcess $print3dProcess = null;
+
+    #[ORM\ManyToOne(inversedBy: 'print3DPresets')]
+    private ?Print3DMaterial $print3dMaterial = null;
+
+    #[ORM\ManyToOne(inversedBy: 'print3DPresets')]
+    private ?SlicerProfil $slicerProfil = null;
 
     public function __construct()
     {
@@ -87,6 +99,42 @@ class Print3DPreset
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getPrint3dProcess(): ?Print3DProcess
+    {
+        return $this->print3dProcess;
+    }
+
+    public function setPrint3dProcess(?Print3DProcess $print3dProcess): static
+    {
+        $this->print3dProcess = $print3dProcess;
+
+        return $this;
+    }
+
+    public function getPrint3dMaterial(): ?Print3DMaterial
+    {
+        return $this->print3dMaterial;
+    }
+
+    public function setPrint3dMaterial(?Print3DMaterial $print3dMaterial): static
+    {
+        $this->print3dMaterial = $print3dMaterial;
+
+        return $this;
+    }
+
+    public function getSlicerProfil(): ?SlicerProfil
+    {
+        return $this->slicerProfil;
+    }
+
+    public function setSlicerProfil(?SlicerProfil $slicerProfil): static
+    {
+        $this->slicerProfil = $slicerProfil;
 
         return $this;
     }

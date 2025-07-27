@@ -26,7 +26,7 @@ class CustomerData
     /**
      * @var Collection<int, CustomerDataOperation>
      */
-    #[ORM\OneToMany(targetEntity: CustomerDataOperation::class, mappedBy: 'customerData')]
+    #[ORM\OneToMany(targetEntity: CustomerDataOperation::class, mappedBy: 'customerData', fetch: 'EAGER')]
     private Collection $customerDataOperations;
 
     public function __construct()
