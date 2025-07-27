@@ -7,6 +7,7 @@ use App\Entity\Base\SubContractor;
 use App\Entity\Enum\Print3DStatusEnum;
 use App\Entity\Operation\AssemblyOperation;
 use App\Entity\Operation\FinishOperation;
+use App\Entity\Operation\QualityOperation;
 use App\Entity\Operation\TreatmentOperation;
 use App\Entity\Process\Print3DMaterial;
 use App\Entity\Process\Print3DProcess;
@@ -93,11 +94,18 @@ class Model
     #[ORM\OneToMany(targetEntity: AssemblyOperation::class, mappedBy: 'model')]
     private Collection $assemblyOperation;
 
+    /**
+     * @var Collection<int, QualityOperation>
+     */
+    #[ORM\OneToMany(targetEntity: QualityOperation::class, mappedBy: 'model')]
+    private Collection $qualityOperation;
+
     public function __construct()
     {
         $this->treatmentOperation = new ArrayCollection();
         $this->finishOperation = new ArrayCollection();
         $this->assemblyOperation = new ArrayCollection();
+        $this->qualityOperation = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -385,6 +393,36 @@ class Model
             // set the owning side to null (unless already changed)
             if ($assemblyOperation->getModel() === $this) {
                 $assemblyOperation->setModel(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, QualityOperation>
+     */
+    public function getQualityOperation(): Collection
+    {
+        return $this->qualityOperation;
+    }
+
+    public function addQualityOperation(QualityOperation $qualityOperation): static
+    {
+        if (!$this->qualityOperation->contains($qualityOperation)) {
+            $this->qualityOperation->add($qualityOperation);
+            $qualityOperation->setModel($this);
+        }
+
+        return $this;
+    }
+
+    public function removeQualityOperation(QualityOperation $qualityOperation): static
+    {
+        if ($this->qualityOperation->removeElement($qualityOperation)) {
+            // set the owning side to null (unless already changed)
+            if ($qualityOperation->getModel() === $this) {
+                $qualityOperation->setModel(null);
             }
         }
 

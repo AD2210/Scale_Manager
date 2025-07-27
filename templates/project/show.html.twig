@@ -218,7 +218,7 @@
         </div>
 
         <div class="col-md-3">
-            {{ components.progress_card('Contrôle qualité', qualityDataset) }}
+            {{ components.progress_card('Contrôle qualité', qualityDataset, path('app_quality_list', {'id': project.id})) }}
         </div>
 
         {# Autres cartes #}

@@ -129,7 +129,7 @@ export default class extends Controller {
                     }))
 
                     // On recharge la page.
-                    if (this.typeValue === 'model' && this.fieldValue === 'treatmentProcess') {
+                    if (this.typeValue === 'model') {
                         window.location.reload()
                     }
                 }

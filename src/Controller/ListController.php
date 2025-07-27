@@ -12,6 +12,7 @@ use App\Repository\Base\SlicerProfilRepository;
 use App\Repository\ModelRepository;
 use App\Repository\Operation\AssemblyOperationRepository;
 use App\Repository\Operation\FinishOperationRepository;
+use App\Repository\Operation\QualityOperationRepository;
 use App\Repository\Operation\TreatmentOperationRepository;
 use App\Repository\Process\Print3DMaterialRepository;
 use App\Repository\Process\Print3DProcessRepository;
@@ -190,4 +191,19 @@ class ListController extends AbstractController
         ]);
     }
 
+    #[Route('/quality/project{id}', name: 'app_quality_list')]
+    public function qualityList(
+        Project                   $project,
+        ModelRepository           $modelRepository,
+        QualityProcessRepository   $processRepository,
+        QualityOperationRepository $operationRepository,
+    ): Response
+    {
+        $models = $modelRepository->findBy(['project' => $project]);
+        return $this->render('quality/list.html.twig', [
+            'items' => $models,
+            'qualityProcesses' => $processRepository->findBy(['isActive' => true]),
+            'qualityOperations' => $operationRepository->findBy(['model' => $models]),
+        ]);
+    }
 }

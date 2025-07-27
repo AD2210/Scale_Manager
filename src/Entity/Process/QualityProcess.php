@@ -2,6 +2,7 @@
 
 namespace App\Entity\Process;
 
+use App\Entity\Operation\QualityOperation;
 use App\Entity\Project;
 use App\Repository\Process\QualityProcessRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -35,9 +36,16 @@ class QualityProcess
     #[ORM\ManyToMany(targetEntity: Project::class, mappedBy: 'qualityProcess')]
     private Collection $projects;
 
+    /**
+     * @var Collection<int, QualityOperation>
+     */
+    #[ORM\OneToMany(targetEntity: QualityOperation::class, mappedBy: 'qualityProcess')]
+    private Collection $qualityOperations;
+
     public function __construct()
     {
         $this->projects = new ArrayCollection();
+        $this->qualityOperations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -118,6 +126,36 @@ class QualityProcess
     {
         if ($this->projects->removeElement($project)) {
             $project->removeQualityProcess($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, QualityOperation>
+     */
+    public function getQualityOperations(): Collection
+    {
+        return $this->qualityOperations;
+    }
+
+    public function addQualityOperation(QualityOperation $qualityOperation): static
+    {
+        if (!$this->qualityOperations->contains($qualityOperation)) {
+            $this->qualityOperations->add($qualityOperation);
+            $qualityOperation->setQualityProcess($this);
+        }
+
+        return $this;
+    }
+
+    public function removeQualityOperation(QualityOperation $qualityOperation): static
+    {
+        if ($this->qualityOperations->removeElement($qualityOperation)) {
+            // set the owning side to null (unless already changed)
+            if ($qualityOperation->getQualityProcess() === $this) {
+                $qualityOperation->setQualityProcess(null);
+            }
         }
 
         return $this;

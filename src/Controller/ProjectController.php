@@ -88,7 +88,7 @@ final class ProjectController extends AbstractController
         $postTreatmentDataset = $statusCalculator->calculateTreatmentProgress($project);
         $finishDataSet = $statusCalculator->calculateFinishProgress($project);
         $assemblyDataset = $statusCalculator->calculateAssemblyProgress($project);
-        //$qualityDataset = $statusCalculator->calculateQualityProgress($project);
+        $qualityDataset = $statusCalculator->calculateQualityProgress($project);
 
         return $this->render('project/show.html.twig', [
             'project' => $project,
@@ -98,7 +98,7 @@ final class ProjectController extends AbstractController
             'postTreatmentDataset' => $postTreatmentDataset,
             'finishDataSet' => $finishDataSet,
             'assemblyDataset' => $assemblyDataset,
-            'qualityDataset' => $assemblyDataset, //@todo remettre le bon dataset
+            'qualityDataset' => $qualityDataset,
         ]);
     }
 

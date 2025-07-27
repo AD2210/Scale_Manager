@@ -82,7 +82,7 @@ readonly class StatusCalculator
 
     public function calculateQualityProgress(Project $project): array
     {
-        return $this->calculateFromModelQuantity($project, fn($m) => $m->isQualityOk(), 'Aucun modèle à contrôler');
+        return $this->calculateOperationProgress($project, 'getQualityOperation', 'Aucunes opération qualité trouvée');
     }
 
     public function calculateTreatmentProgress(Project $project): array

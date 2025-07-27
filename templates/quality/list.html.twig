@@ -1,27 +1,27 @@
 {% extends 'components/_table_wrapper.html.twig' %}
 
 {% set entityType = 'model' %}
-{% set maxAssemblies = 0 %}
+{% set maxQualities = 0 %}
 
-{# Calcul du nombre maximum d'assemblages' #}
+{# Calcul du nombre maximum de process qualité' #}
 {% for item in items %}
-    {% set itemCount = item.assemblyOperation|length %}
-    {% if itemCount > maxAssemblies %}
-        {% set maxAssemblies = itemCount %}
+    {% set itemCount = item.qualityOperation|length %}
+    {% if itemCount > maxQualities %}
+        {% set maxQualities = itemCount %}
     {% endif %}
 {% endfor %}
 
-{% block title %}Assemblage{% endblock %}
+{% block title %}Qualité{% endblock %}
 
 {% block page_header %}
-    <h1 class="h4 mb-0">Assemblage des pièces</h1>
+    <h1 class="h4 mb-0">Qualité des pièces</h1>
 {% endblock %}
 
 {% block table_head %}
     <tr>
         <th class="col-2">Fichier</th>
-        {% for i in 1..maxAssemblies %}
-            <th class="col-2">Assemblage {{ i }}</th>
+        {% for i in 1..maxQualities %}
+            <th class="col-2">Qualité {{ i }}</th>
             <th class="text-center col-1">Terminé</th>
         {% endfor %}
         <th class="col-2">Nouveau</th>
@@ -36,24 +36,24 @@
             } %}
 
             {# Assemblage existants triés par ordre de création #}
-            {% set operations = item.assemblyOperation|sort((a, b) => a.id <=> b.id) %}
+            {% set operations = item.qualityOperation|sort((a, b) => a.id <=> b.id) %}
 
-            {% for i in 1..maxAssemblies %}
+            {% for i in 1..maxQualities %}
                 {% set operation = operations[i - 1] is defined ? operations[i - 1] : null %}
 
                 {% include 'components/editable/_dropdown_cell.html.twig' with {
                     entityId: item.id,
                     entityType: entityType,
-                    field: 'assemblyProcess',
-                    name: 'assemblyOperation-' ~ i,
+                    field: 'qualityProcess',
+                    name: 'qualityOperation-' ~ i,
                     value: operation ? {
                         id: operation.id,
-                        name: operation.assemblyProcess.name,
-                        assemblyProcessId: operation.assemblyProcess.id
+                        name: operation.qualityProcess.name,
+                        qualityProcessId: operation.qualityProcess.id
                     } : null,
-                    items: assemblyProcesses,
+                    items: qualityProcesses,
                     multiple: false,
-                    placeholder: 'Aucun Assemblage',
+                    placeholder: 'Aucun contrôle',
                     disabled: operation is null and i > operations|length + 1
                 } %}
 
@@ -61,21 +61,21 @@
                     value: operation ? operation.isDone : false,
                     field: 'isDone',
                     entityId: operation ? operation.id : null,
-                    entityType: 'assemblyOperation',
+                    entityType: 'qualityOperation',
                     disabled: operation is null
                 } %}
             {% endfor %}
 
-            {# Colonne "Nouvel assemblage" #}
+            {# Colonne "Nouveau contrôle" #}
             {% include 'components/editable/_dropdown_cell.html.twig' with {
                 entityId: item.id,
                 entityType: entityType,
-                field: 'assemblyProcess',
-                name: 'assemblyOperation-new',
+                field: 'qualityProcess',
+                name: 'qualityOperation-new',
                 value: null,
-                items: assemblyProcesses,
+                items: qualityProcesses,
                 multiple: false,
-                placeholder: 'Ajouter un assemblage'
+                placeholder: 'Ajouter un contrôle'
             } %}
             <td></td>
         </tr>
