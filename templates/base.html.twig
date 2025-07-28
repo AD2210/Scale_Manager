@@ -49,25 +49,33 @@
             </li>
             <!-- Item avec collapse -->
             <!-- Section Projet -->
-            <li data-controller="collapse-arrow"
-                data-bs-toggle="collapse"
-                data-bs-target="#collapseProjet"
-                role="button"
-                aria-expanded="false"
-                aria-controls="collapseProjet"
-                class="nav-item">
-                <a class="nav-link d-flex justify-content-between align-items-center">
-                    <span><i class="fa-solid fa-diagram-project me-2"></i> Projet</span>
+            {% set activeProjects = active_projects() %}
+            {% if activeProjects is not empty %}
+            <li class="nav-item">
+                <a class="nav-link d-flex justify-content-between align-items-center"
+                   data-controller="collapse-arrow"
+                   data-bs-toggle="collapse"
+                   data-bs-target="#collapseProjet"
+                   role="button"
+                   aria-expanded="false"
+                   aria-controls="collapseProjet">
+                    <span><i class="fa-solid fa-diagram-project me-2"></i>Projet en cours</span>
                     <i data-collapse-arrow-target="icon" class="fa-solid fa-chevron-down transition"></i>
                 </a>
                 <div class="collapse ps-3" id="collapseProjet">
                     <ul class="nav flex-column">
-                        <li class="nav-item"><a class="nav-link" href="#">Sous-projet 1</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Sous-projet 2</a></li>
+                        {% for project in activeProjects %}
+                            <li class="nav-item">
+                                <a href="{{ path('app_project_show', { id: project.id }) }}"
+                                   class="nav-link">
+                                    {{ project.title|length > 20 ? project.title|slice(0, 20) ~ '…' : project.title }}
+                                </a>
+                            </li>
+                        {% endfor %}
                     </ul>
                 </div>
             </li>
-
+            {% endif %}
 
             <!-- Section Base -->
             <li class="nav-item">
