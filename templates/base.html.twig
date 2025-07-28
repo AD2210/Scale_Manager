@@ -146,7 +146,7 @@
                                href="{{ path('app_process_print3d_material_list') }}">Matériaux</a>
                         </li>
                         <li class="nav-item">
-                            {% set isActive = app.request.attributes.get('_route') starts with 'app_process_print3d' %}
+                            {% set isActive = app.request.attributes.get('_route') starts with 'app_process_print3d_process' %}
                             <a class="nav-link {{ isActive ? 'active' : '' }}"
                                href="{{ path('app_process_print3d_process_list') }}">Impression 3D</a>
                         </li>

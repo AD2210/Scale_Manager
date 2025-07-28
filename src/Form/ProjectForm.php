@@ -20,17 +20,23 @@ class ProjectForm extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('title', TextType::class)
+            ->add('title', TextType::class,[
+                'label' => 'Titre',
+                'required' => true,
+            ])
             ->add('customer', EntityType::class, [
+                'label' => 'Client',
                 'class' => Customer::class,
                 'choice_label' => 'name',
             ])
             ->add('manager', EntityType::class, [
+                'label' => 'Responsable',
                 'class' => Manager::class,
                 'choice_label' => 'name',
                 'required' => false,
             ])
             ->add('deadline', DateType::class, [
+                'label' => 'Date limite',
                 'widget' => 'single_text',
                 'required' => false,
             ])
