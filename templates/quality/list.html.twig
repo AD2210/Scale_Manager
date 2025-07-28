@@ -14,7 +14,9 @@
 {% block title %}Qualité{% endblock %}
 
 {% block page_header %}
-    <h1 class="h4 mb-0">Qualité des pièces</h1>
+    <h1 class="h4 mb-0">Qualité -
+        <a href="{{ path('app_project_show', { id: project.id }) }}"
+           class="text-decoration-underline">{{ project.title }}</a></h1>
 {% endblock %}
 
 {% block table_head %}

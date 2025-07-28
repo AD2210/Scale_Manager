@@ -123,6 +123,7 @@ class ListController extends AbstractController
     {
         return $this->render('model/list.html.twig', [
             'items' => $repo->findBy(['project' => $project]),
+            'project' => $project,
             'slicerProfils' => $profilRepository->findBy(['isActive' => true]),
         ]);
     }
@@ -137,6 +138,7 @@ class ListController extends AbstractController
     {
         return $this->render('print3d/list.html.twig', [
             'items' => $modelRepository->findBy(['project' => $project]),
+            'project' => $project,
             'print3dProcesses' => $processRepository->findBy(['isActive' => true]),
             'print3dMaterials' => $materialRepository->findBy(['isActive' => true]),
             'print3dStatuses' => Print3DStatusEnum::cases(),
@@ -154,6 +156,7 @@ class ListController extends AbstractController
         $models = $modelRepository->findBy(['project' => $project]);
         return $this->render('treatment/list.html.twig', [
             'items' => $models,
+            'project' => $project,
             'treatmentProcesses' => $processRepository->findBy(['isActive' => true]),
             'treatmentOperations' => $operationRepository->findBy(['model' => $models]),
         ]);
@@ -170,6 +173,7 @@ class ListController extends AbstractController
         $models = $modelRepository->findBy(['project' => $project]);
         return $this->render('finish/list.html.twig', [
             'items' => $models,
+            'project' => $project,
             'finishProcesses' => $processRepository->findBy(['isActive' => true]),
             'finishOperations' => $operationRepository->findBy(['model' => $models]),
         ]);
@@ -186,6 +190,7 @@ class ListController extends AbstractController
         $models = $modelRepository->findBy(['project' => $project]);
         return $this->render('assembly/list.html.twig', [
             'items' => $models,
+            'project' => $project,
             'assemblyProcesses' => $processRepository->findBy(['isActive' => true]),
             'assemblyOperations' => $operationRepository->findBy(['model' => $models]),
         ]);
@@ -202,6 +207,7 @@ class ListController extends AbstractController
         $models = $modelRepository->findBy(['project' => $project]);
         return $this->render('quality/list.html.twig', [
             'items' => $models,
+            'project' => $project,
             'qualityProcesses' => $processRepository->findBy(['isActive' => true]),
             'qualityOperations' => $operationRepository->findBy(['model' => $models]),
         ]);
