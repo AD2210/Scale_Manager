@@ -2,7 +2,8 @@
 import { Controller } from '@hotwired/stimulus';
 
 export default class extends Controller {
-    static targets = ['archiveButton', 'deadline', 'deleteOrphans', 'resyncButton', 'gammeButton'];
+    static targets = ['archiveButton', 'deadline', 'deleteOrphans', 'resyncButton', 'gammeButton',
+        'uploadInputQuote', 'uploadInputSpecification'];
     static values = {
         projectId: String
     }
@@ -155,6 +156,70 @@ export default class extends Controller {
             }
         } catch (error) {
             this.notify('error', 'Une erreur est survenue lors de la vérification');
+        }
+    }
+
+    // declencheur de l'input
+    triggerFileUpload(event) {
+        console.log('init');
+        const type = event.currentTarget.dataset.type;
+        const input = this[`uploadInput${type}Target`];
+        console.log('type : ', type, 'input : ',input);
+        if (input) input.click();
+    }
+
+    //Gestion upload file
+    async handleFileUpload(event) {
+        const input = event.target;
+        const type = input.dataset.type;
+        const projectId = input.dataset.id || this.projectIdValue;
+
+        const file = input.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch(`/project/${projectId}/upload/${type}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!data.success) throw new Error(data.message);
+
+            this.notify('success', `Fichier ${type} mis à jour`);
+            window.location.reload();
+
+        } catch (e) {
+            console.error('Erreur:', e);
+            this.notify('error', `Erreur lors du téléversement : ${e.message}`);
+        }
+    }
+
+    // gestion delete file
+    async deleteProjectFile(event) {
+        const type = event.currentTarget.dataset.type
+        const confirmed = confirm(`Supprimer le fichier ${type} ?`);
+        if (!confirmed) return;
+
+        try {
+            const response = await fetch(`/project/${this.projectIdValue}/delete-file/${type}`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (!data.success) throw new Error(data.message);
+
+            this.notify('success', `Fichier ${type} supprimé`);
+            window.location.reload();
+
+        } catch (e) {
+            console.error('Erreur:', e);
+            this.notify('error', `Erreur lors de la suppression : ${e.message}`);
         }
     }
 
