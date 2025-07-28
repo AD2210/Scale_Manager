@@ -20,8 +20,8 @@
 {% block table_head %}
     <tr>
         <th class="col-2">Fichier</th>
-        {% for i in 1..maxTreatments %}
-            <th class="col-2">Traitement {{ i }}</th>
+        {% for i in 0..maxTreatments %}
+            <th class="col-2">Traitement {{ i + 1 }}</th>
             <th class="text-center col-1">Terminé</th>
         {% endfor %}
         <th class="col-2">Nouveau</th>
@@ -38,8 +38,8 @@
             {# Traitements existants triés par ordre de création #}
             {% set operations = item.treatmentOperation|sort((a, b) => a.id <=> b.id) %}
 
-            {% for i in 1..maxTreatments %}
-                {% set operation = operations[i - 1] is defined ? operations[i - 1] : null %}
+            {% for i in 0..maxTreatments %}
+                {% set operation = operations[i] is defined ? operations[i] : null %}
 
                 {% include 'components/editable/_dropdown_cell.html.twig' with {
                     entityId: item.id,
@@ -77,7 +77,6 @@
                 multiple: false,
                 placeholder: 'Ajouter un traitement'
             } %}
-            <td></td>
         </tr>
     {% endfor %}
 {% endblock %}
