@@ -28,7 +28,7 @@
            class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
             <span class="fs-4">SCALE Manager</span> </a>
         <hr>
-        <ul class="nav nav-pills flex-column mb-auto">
+        <ul class="nav nav-pills flex-column mb-auto" id="sidebarMenu">
             <!-- Nav Button -->
             <li class="nav-item">
                 <a href="{{ path('app_project_index') }}" class="nav-link" aria-current="page">
@@ -53,16 +53,15 @@
             {% if activeProjects is not empty %}
             <li class="nav-item">
                 <a class="nav-link d-flex justify-content-between align-items-center"
-                   data-controller="collapse-arrow"
                    data-bs-toggle="collapse"
-                   data-bs-target="#collapseProjet"
+                   href="#collapseProjet"
                    role="button"
                    aria-expanded="false"
                    aria-controls="collapseProjet">
                     <span><i class="fa-solid fa-diagram-project me-2"></i>Projet en cours</span>
-                    <i data-collapse-arrow-target="icon" class="fa-solid fa-chevron-down transition"></i>
+                    <i data-role="arrow" class="fa-solid fa-chevron-down transition"></i>
                 </a>
-                <div class="collapse ps-3" id="collapseProjet">
+                <div class="collapse ps-3" id="collapseProjet" data-bs-parent="#sidebarMenu">
                     <ul class="nav flex-column">
                         {% for project in activeProjects %}
                             <li class="nav-item">
@@ -86,9 +85,9 @@
                    aria-expanded="false"
                    aria-controls="collapseBase">
                     <span><i class="fa-solid fa-database me-2"></i> Base</span>
-                    <i class="fa-solid fa-chevron-down transition" id="arrowBase"></i>
+                    <i class="fa-solid fa-chevron-down transition" data-role="arrow"></i>
                 </a>
-                <div class="collapse ps-3" id="collapseBase">
+                <div class="collapse ps-3" id="collapseBase" data-bs-parent="#sidebarMenu">
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_customer_list') }}">Clients</a>
@@ -118,9 +117,9 @@
                    aria-expanded="false"
                    aria-controls="collapseProcess">
                     <span><i class="fa-solid fa-industry me-2"></i> Process</span>
-                    <i class="fa-solid fa-chevron-down transition" id="arrowBase"></i>
+                    <i class="fa-solid fa-chevron-down transition" data-role="arrow"></i>
                 </a>
-                <div class="collapse ps-3" id="collapseProcess">
+                <div class="collapse ps-3" id="collapseProcess" data-bs-parent="#sidebarMenu">
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link" href="{{ path('app_print3d_material_list') }}">Matériaux</a>
