@@ -9,7 +9,9 @@
     <div class="d-flex justify-content-between align-items-center w-100">
         <h1 class="h4 m-0">
             {% if project is defined %}
-                {{ project.title }} - {{ model.fileName }}
+                <a href="{{ path('app_project_show', { id: project.id }) }}"
+                   class="text-decoration-underline">{{ project.title }}</a>
+                - {{ model.fileName }}
             {% else %}
                 Edition des Presets
             {% endif %}
