@@ -135,9 +135,7 @@ export default class extends Controller {
                     }))
 
                     // On recharge la page.
-                    if (this.typeValue === 'model') {
-                        window.location.reload()
-                    }
+                    window.setTimeout(() => window.location.reload(), 1000)
                 }
             })
             .catch(error => {

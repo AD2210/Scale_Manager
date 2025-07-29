@@ -131,7 +131,7 @@ export default class extends Controller {
 
             // Recharger la page pour mettre à jour les stats
             this.afterStateChange();
-            window.location.reload();
+            window.setTimeout(() => window.location.reload(), 1000)
 
         } catch (error) {
             this.notify('error', 'Erreur lors de la synchronisation des dossiers');
@@ -191,7 +191,7 @@ export default class extends Controller {
             if (!data.success) throw new Error(data.message);
 
             this.notify('success', `Fichier ${type} mis à jour`);
-            window.location.reload();
+            window.setTimeout(() => window.location.reload(), 1000)
 
         } catch (e) {
             console.error('Erreur:', e);
@@ -215,7 +215,7 @@ export default class extends Controller {
             if (!data.success) throw new Error(data.message);
 
             this.notify('success', `Fichier ${type} supprimé`);
-            window.location.reload();
+            window.setTimeout(() => window.location.reload(), 1000)
 
         } catch (e) {
             console.error('Erreur:', e);

@@ -82,7 +82,7 @@ export default class extends Controller {
                 detail: {message: 'Erreur lors de la requête'}
             }));
         }
-        window.location.reload();
+        window.setTimeout(() => window.location.reload(), 1000)
     }
 
     // Methode de chargement des Presets
