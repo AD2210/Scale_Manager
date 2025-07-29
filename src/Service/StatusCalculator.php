@@ -20,39 +20,38 @@ readonly class StatusCalculator
     public function calculateCustomerDataProgress(Project $project): array
     {
         try {
-            $cds = $this->customerDataRepository->findBy(['project' => $project]);
-            $total = 0;
+            $customerDataList = $this->customerDataRepository->findBy(['project' => $project]);
+
+            if (empty($customerDataList)) {
+                return ['error' => 'Aucune donnée dans le dossier.'];
+            }
+
             $done = 0;
+            $total = count($customerDataList);
 
+            foreach ($customerDataList as $cd) {
+                $mainDone = $cd->getCustomerDataOperations()
+                    ->filter(fn($op) =>
+                        $op->isIsDone() &&
+                        $op->getSoftware()?->isActive() &&
+                        $op->getSoftware()?->isMain()
+                    )
+                    ->count();
 
-            foreach ($cds as $cd) {
-                $operations = $cd->getCustomerDataOperations();
-
-                foreach ($operations as $op) {
-                    $software = $op->getSoftware();
-                    if ($software && $software->isActive()) {
-                        $total++;
-                        if ($op->isIsDone()) {
-                            $done++;
-                        }
-                    }
+                if ($mainDone > 0) {
+                    $done++;
                 }
             }
 
-            if (empty($cds)) {
-                return ['error' => 'Aucune données dans le dossier'];
-            }
-
             if ($total === 0) {
-                return ['error' => 'Aucun logiciel actif n’est configuré pour les fichiers client.'];
+                return ['error' => 'Aucune donnée client détectée.'];
             }
 
             $progress = round(($done / $total) * 100, 2);
 
             return compact('done', 'total', 'progress');
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
             error_log('Erreur dans calculateCustomerDataProgress: ' . $e->getMessage());
-            error_log($e->getTraceAsString());
             throw $e;
         }
     }
