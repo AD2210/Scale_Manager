@@ -62,6 +62,9 @@ readonly class PresetUpdaterService
             throw new InvalidArgumentException('Le preset n\'existe pas');
         }
 
+        //On commence par clear le preset (principe de l'autocomplete)
+        $preset->getTreatmentProcesses()->clear();
+
         foreach ($data['processes'] ?? [] as $processId) {
             $process = $this->repositories->getTreatmentProcessRepository()->find($processId);
             if ($process) {
@@ -79,6 +82,9 @@ readonly class PresetUpdaterService
         if (!$preset) {
             throw new InvalidArgumentException('Le preset n\'existe pas');
         }
+
+        //On commence par clear le preset (principe de l'autocomplete)
+        $preset->getTreatmentProcesses()->clear();
 
         foreach ($data['processes'] ?? [] as $processId) {
             $process = $this->repositories->getFinishProcessRepository()->find($processId);
