@@ -50,7 +50,12 @@
                 {% if link %}
                     <a href="{{ link }}" class="text-decoration-none text-dark stretched-link"></a>
                 {% endif %}
-                <div class="card-header">{{ title }}</div>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>{{ title }}</span>
+                    {% if dataset.total|default(0) > 0 and dataset.done|default(0) == dataset.total %}
+                        <span class="badge bg-success">Terminé</span>
+                    {% endif %}
+                </div>
                 <div class="card-body">
                     {% if dataset.error is defined %}
                         <div class="text-danger">{{ dataset.error }}</div>
@@ -166,7 +171,12 @@
             <div class="card h-100">
                 <a href="{{ path('app_datas_list', {'id': project.id}) }}"
                    class="text-decoration-none text-dark stretched-link"></a>
-                <div class="card-header">Données client</div>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Données client</span>
+                    {% if customerDataDataset.total|default(0) > 0 and customerDataDataset.done|default(0) == customerDataDataset.total %}
+                        <span class="badge bg-success">Terminé</span>
+                    {% endif %}
+                </div>
                 <div class="card-body">
                     <div class="mb-2">
                         <label class="form-label">Lien dossier :</label>
@@ -196,7 +206,12 @@
             <div class="card h-100">
                 <a href="{{ path('app_model_list', {'id': project.id}) }}"
                    class="text-decoration-none text-dark stretched-link"></a>
-                <div class="card-header">Modèles</div>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Modèles</span>
+                    {% if modelDataset.total|default(0) > 0 and modelDataset.done|default(0) == modelDataset.total %}
+                        <span class="badge bg-success">Terminé</span>
+                    {% endif %}
+                </div>
                 <div class="card-body">
                     <div class="mb-2">
                         <label class="form-label">Lien dossier :</label>
