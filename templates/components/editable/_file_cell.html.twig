@@ -1,22 +1,33 @@
 <td>
     <form class="file-upload-form d-flex align-items-center gap-2" enctype="multipart/form-data">
-        <input type="file"
-               name="{{ field }}"
-               class="form-control"
-               data-controller="editable"
-               data-editable-id-value="{{ entityId }}"
-               data-editable-type-value="{{ entityType }}"
-               data-editable-field-value="{{ field }}"
-               data-action="change->editable#update">
-        {% if value %}
-            <div class="form-text small">
-                {{ value|split('/')|last }}
-            </div>
-        {% endif %}
+        {% set fileName = value ? value|split('/')|last : 'Aucun fichier' %}
+
+        {# Affichage du nom du fichier actuel #}
+        <span class="small text-truncate" title="{{ fileName }}" style="max-width: 200px;">
+            {{ fileName }}
+        </span>
+
+        {# Bouton voir (si possible) #}
         {% if view_route and value %}
-            <a class="btn btn-sm btn-outline-primary" href="{{ path(view_route, { id: entityId }) }}" target="_blank" title="Voir">
+            <a class="btn btn-sm btn-outline-primary"
+               href="{{ path(view_route, { id: entityId }) }}"
+               target="_blank"
+               title="Voir">
                 <i class="fa-solid fa-eye"></i>
             </a>
         {% endif %}
+
+        {# Input file invisible + bouton stylé #}
+        <label class="btn btn-sm btn-outline-secondary mb-0" title="Remplacer le fichier">
+            <i class="fa-solid fa-upload"></i>
+            <input type="file"
+                   name="{{ field }}"
+                   class="d-none"
+                   data-controller="editable"
+                   data-editable-id-value="{{ entityId }}"
+                   data-editable-type-value="{{ entityType }}"
+                   data-editable-field-value="{{ field }}"
+                   data-action="change->editable#update">
+        </label>
     </form>
 </td>
