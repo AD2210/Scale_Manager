@@ -15,6 +15,7 @@ use App\Entity\Process\Print3DMaterial;
 use App\Entity\Process\Print3DProcess;
 use App\Entity\Process\QualityProcess;
 use App\Entity\Process\TreatmentProcess;
+use App\Repository\Base\SoftwareRepository;
 use App\Service\EntityManagerService;
 use App\Service\FileManagerService;
 use Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException;
@@ -32,7 +33,7 @@ class EntityGenericController extends AbstractController
         'software' => [
             'class' => Software::class,
             'redirect_route' => 'app_software_list',
-            'fields' => ['name', 'isActive']
+            'fields' => ['name', 'isActive', 'isMain']
         ],
         'customer' => [
             'class' => Customer::class,
@@ -144,7 +145,8 @@ class EntityGenericController extends AbstractController
     public function __construct(
         private readonly EntityManagerService   $entityService,
         private readonly FileManagerService     $fileService,
-        private readonly EntityManagerInterface $em
+        private readonly EntityManagerInterface $em,
+        private readonly SoftwareRepository     $softwareRepository,
     )
     {
     }
@@ -178,6 +180,7 @@ class EntityGenericController extends AbstractController
                 return new JsonResponse(['error' => 'Entité introuvable'], 404);
             }
 
+
             // Traitement des fichiers
             foreach ($request->files->all() as $field => $file) {
                 if ($file->getMimeType() !== 'application/pdf') {
@@ -192,6 +195,20 @@ class EntityGenericController extends AbstractController
             if ($jsonData = json_decode($request->getContent(), true)) {
 
                 foreach ($jsonData as $field => $value) {
+                    if ($entity instanceof Software && $field === 'isMain') {
+                        dump($entity, $value);
+                        if ($value === true && !$entity->isActive()) {
+                            return new JsonResponse([
+                                'success' => false,
+                                'error' => 'Un logiciel inactif ne peut pas être défini comme principal.'
+                            ], 400);
+                        }
+
+                        if ($value === 'on') {
+                            $this->softwareRepository->clearMainFlagExcept($entity);
+                        }
+                    }
+
                     if (in_array($field, $config['fields'] ?? [])) {
                         $this->entityService->updateEntityField($entity, $field, $value, $config);
                     }
@@ -226,13 +243,26 @@ class EntityGenericController extends AbstractController
 
             // Traitement des champs simples
             foreach ($config['fields'] as $field) {
+                //gestion du mimeType
                 if (is_file($request->files->get($field)) && $request->files->get($field)->getMimeType() !== 'application/pdf') {
                     return new JsonResponse(['error' => 'Fichier non valide'], 400);
                 }
                 $value = $request->request->get($field) ?? $request->files->get($field);
                 $this->entityService->updateEntityField($entity, $field, $value, $config);
             }
+            if ($entity instanceof Software) {
+                if ($entity->isMain() && !$entity->isActive()) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'error' => 'Un logiciel inactif ne peut pas être défini comme principal.'
+                    ], 400);
+                }
 
+                if ($entity->isMain()) {
+                    $this->softwareRepository->clearMainFlagExcept($entity);
+                    dump($this->softwareRepository->findAll());
+                }
+            }
             // Traitement des relations ManyToMany
             foreach ($config['manyToMany_fields'] ?? [] as $field => $relation) {
                 $ids = $request->request->all($field);
@@ -241,6 +271,20 @@ class EntityGenericController extends AbstractController
 
             $this->em->persist($entity);
             $this->em->flush();
+
+            if ($entity instanceof Software) {
+                if ($entity->isMain() && !$entity->isActive()) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'error' => 'Un logiciel inactif ne peut pas être défini comme principal.'
+                    ], 400);
+                }
+
+                if ($entity->isMain()) {
+                    $this->softwareRepository->clearMainFlagExcept($entity);
+                    dump($this->softwareRepository->findAll());
+                }
+            }
 
             return new JsonResponse([
                 'success' => true

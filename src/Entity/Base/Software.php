@@ -19,6 +19,9 @@ class Software
     #[ORM\Column]
     private ?bool $isActive = null;
 
+    #[ORM\Column]
+    private ?bool $isMain = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -47,6 +50,18 @@ class Software
             $isActive = false;
         }
         $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function isMain(): ?bool
+    {
+        return $this->isMain;
+    }
+
+    public function setIsMain(bool $isMain): static
+    {
+        $this->isMain = $isMain;
 
         return $this;
     }

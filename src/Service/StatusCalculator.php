@@ -23,30 +23,31 @@ readonly class StatusCalculator
             $cds = $this->customerDataRepository->findBy(['project' => $project]);
             $total = 0;
             $done = 0;
-            $nbSoftware = 0;
+
 
             foreach ($cds as $cd) {
                 $operations = $cd->getCustomerDataOperations();
 
-                $softwareCount = $operations->count();
-                $nbSoftware = max($nbSoftware, $softwareCount);
-                $total += $softwareCount;
-
-                $doneCount = $operations->filter(fn($op) => $op->isIsDone())->count();
-                $done += $doneCount;
+                foreach ($operations as $op) {
+                    $software = $op->getSoftware();
+                    if ($software && $software->isActive()) {
+                        $total++;
+                        if ($op->isIsDone()) {
+                            $done++;
+                        }
+                    }
+                }
             }
 
             if (empty($cds)) {
                 return ['error' => 'Aucune données dans le dossier'];
             }
 
-            if ($nbSoftware === 0) {
-                return ['error' => 'Aucun logiciel n\'est configuré pour les fichiers client.'];
+            if ($total === 0) {
+                return ['error' => 'Aucun logiciel actif n’est configuré pour les fichiers client.'];
             }
 
-            $total /= $nbSoftware;
-            $done /= $nbSoftware;
-            $progress = $total > 0 ? round(($done / $total) * 100, 2) : 0;
+            $progress = round(($done / $total) * 100, 2);
 
             return compact('done', 'total', 'progress');
         } catch (Exception $e) {

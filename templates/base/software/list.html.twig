@@ -12,6 +12,7 @@
     <tr>
         <th class="col-6">Nom</th>
         <th class="col-2 text-center">Actif</th>
+        <th class="col-2 text-center">Principal</th>
         {{ parent() }}
     </tr>
 {% endblock %}
@@ -24,7 +25,8 @@
             form_class: 'mt-2',
             fields: [
                 { name: 'name', type: 'text', placeholder: 'Nom du logiciel', required: true },
-                { name: 'isActive', type: 'checkbox', value: false },
+                { name: 'isActive', type: 'checkbox', value: true },
+                { name: 'isMain', type: 'checkbox', value: false },
             ]
         } %}
     </tr>
@@ -43,5 +45,13 @@
         entityType: entityType,
         field: 'isActive',
         value: item.isActive
+    } %}
+
+    {% include 'components/editable/_radio_cell.html.twig' with {
+        entityId: item.id,
+        entityType: entityType,
+        field: 'isMain',
+        value: item.isMain,
+        groupName: 'software-main'
     } %}
 {% endblock %}
