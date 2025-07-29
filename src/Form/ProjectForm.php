@@ -20,7 +20,7 @@ class ProjectForm extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('title', TextType::class,[
+            ->add('title', TextType::class, [
                 'label' => 'Titre',
                 'required' => true,
             ])
@@ -42,29 +42,31 @@ class ProjectForm extends AbstractType
             ])
             ->add('quoteLink', FileType::class, [
                 'required' => false,
-                'label' => 'Devis (PDF ou image)',
+                'label' => 'Devis (Pdf)',
                 'mapped' => false,
+                'attr' => [
+                    'accept' => '.pdf'
+                ],
                 'constraints' => [
                     new File([
                         'maxSize' => '10M',
-                        'mimeTypes' => [
-                            'application/pdf',
-                            'image/*'
-                        ],
+                        'mimeTypes' => ['application/pdf'],
+                        'mimeTypesMessage' => 'Merci de choisir un fichier PDF valide.',
                     ])
                 ],
             ])
             ->add('specificationLink', FileType::class, [
                 'required' => false,
-                'label' => 'Spécifications techniques',
+                'label' => 'Spécifications techniques (Pdf)',
                 'mapped' => false,
+                'attr' => [
+                    'accept' => '.pdf'
+                ],
                 'constraints' => [
                     new File([
                         'maxSize' => '10M',
-                        'mimeTypes' => [
-                            'application/pdf',
-                            'image/*'
-                        ],
+                        'mimeTypes' => ['application/pdf'],
+                        'mimeTypesMessage' => 'Merci de choisir un fichier PDF valide.',
                     ])
                 ],
             ])

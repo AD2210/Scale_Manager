@@ -180,6 +180,9 @@ class EntityGenericController extends AbstractController
 
             // Traitement des fichiers
             foreach ($request->files->all() as $field => $file) {
+                if ($file->getMimeType() !== 'application/pdf') {
+                    return new JsonResponse(['error' => 'Fichier non valide'], 400);
+                }
                 if (in_array($field, $config['fields'] ?? [])) {
                     $this->entityService->updateEntityField($entity, $field, $file, $config);
                 }
@@ -223,6 +226,9 @@ class EntityGenericController extends AbstractController
 
             // Traitement des champs simples
             foreach ($config['fields'] as $field) {
+                if (is_file($request->files->get($field)) && $request->files->get($field)->getMimeType() !== 'application/pdf') {
+                    return new JsonResponse(['error' => 'Fichier non valide'], 400);
+                }
                 $value = $request->request->get($field) ?? $request->files->get($field);
                 $this->entityService->updateEntityField($entity, $field, $value, $config);
             }
