@@ -119,9 +119,11 @@ readonly class PresetUpdaterService
 
     public function updateModel(Model $model, string $field, $value): void
     {
+        $applyDefaults = false; // trouver un moyen de passer une variable fiable pour appliquer les valeur par défaut
+
         match ($field) {
-            'print3dProcess' => $this->updateModelPrint3dProcess($model, $value),
-            'print3dMaterial' => $this->updateModelPrint3dMaterial($model, $value),
+            'print3dProcess' => $this->updateModelPrint3dProcess($model, $value, $applyDefaults),
+            'print3dMaterial' => $this->updateModelPrint3dMaterial($model, $value, $applyDefaults),
             'slicerProfil' => $model->setSlicerProfil(
                 $value ? $this->repositories->getSlicerProfilRepository()->find($value) : null
             ),
@@ -160,6 +162,7 @@ readonly class PresetUpdaterService
                 $operation = new TreatmentOperation();
                 $operation->setTreatmentProcess($process);
                 $operation->setModel($model);
+                $model->addTreatmentOperation($operation);// on synchronise le côté opposé pour être sû d'avoir des valeurs depuis model sans rechargement
                 $this->entityManager->persist($operation);
             }
         }
@@ -180,28 +183,35 @@ readonly class PresetUpdaterService
                 $operation = new FinishOperation();
                 $operation->setFinishProcess($process);
                 $operation->setModel($model);
+                $model->addFinishOperation($operation);
                 $this->entityManager->persist($operation);
             }
         }
     }
 
-    public function updateModelPrint3dProcess($model, $value) :void
+    public function updateModelPrint3dProcess($model, $value, Bool $applyDefault) :void
     {
         $print3dProcess = $value ? $this->repositories->getPrint3DProcessRepository()->find($value) : null;
         // On set le process ou null si vide ou null
         $model->setPrint3dProcess($print3dProcess);
-        //On set les process de traitement ou finition défini par défaut dans le process d'impression
-        $this->updateModelTreatmentOperations($model, $print3dProcess->getTreatmentProcess()->toArray());
-        $this->updateModelFinishOperations($model, $print3dProcess->getFinishProcess()->toArray());
+
+        if ($applyDefault) {
+            //On set les process de traitement ou finition défini par défaut dans le process d'impression si le champ est update seul
+            $this->updateModelTreatmentOperations($model, $print3dProcess->getTreatmentProcess()->toArray());
+            $this->updateModelFinishOperations($model, $print3dProcess->getFinishProcess()->toArray());
+        }
+
     }
 
-    public function updateModelPrint3dMaterial($model, $value) :void
+    public function updateModelPrint3dMaterial($model, $value, Bool $applyDefault) :void
     {
         $print3dMaterial = $value ? $this->repositories->getPrint3DMaterialRepository()->find($value) : null;
         // On set le process ou null si vide ou null
         $model->setPrint3dMaterial($print3dMaterial);
-        //On set les process de traitement ou finition défini par défaut dans le materiel d'impression
-        $this->updateModelTreatmentOperations($model, $print3dMaterial->getTreatmentProcess()->toArray());
-        $this->updateModelFinishOperations($model, $print3dMaterial->getFinishProcess()->toArray());
+        if ($applyDefault) {
+            //On set les process de traitement ou finition défini par défaut dans le materiau d'impression si le champ est update seul
+            $this->updateModelTreatmentOperations($model, $print3dMaterial->getTreatmentProcess()->toArray());
+            $this->updateModelFinishOperations($model, $print3dMaterial->getFinishProcess()->toArray());
+        }
     }
 }
