@@ -10,6 +10,11 @@
     <input type="checkbox"
            class="form-check-input"
            {% if value %}checked{% endif %}
-           data-action="change->editable#update">
+           data-action="change->editable#update"
+        {% if item.isMain is defined %}
+        {% if item.isMain %}
+    disabled
+        {% endif %}
+    {% endif %}>
 </td>
 

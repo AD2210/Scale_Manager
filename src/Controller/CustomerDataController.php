@@ -23,6 +23,7 @@ class CustomerDataController extends AbstractController
     {
         return $this->render('customerData/list.html.twig', [
             'items' => $repo->findBy(['project' => $project]),
+            'project' => $project,
             'softwares' => $softwareRepository->findBy(['isActive'=>true]),
         ]);
     }

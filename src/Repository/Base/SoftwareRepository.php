@@ -16,6 +16,18 @@ class SoftwareRepository extends ServiceEntityRepository
         parent::__construct($registry, Software::class);
     }
 
+    public function clearMainFlagExcept(Software $main) : void
+    {
+        $qb = $this->createQueryBuilder('s');
+        $qb->update()
+            ->set('s.isMain', ':false')
+            ->where('s.id != :id')
+            ->setParameter('false', false)
+            ->setParameter('id', $main->getId())
+            ->getQuery()
+            ->execute();
+    }
+
     //    /**
     //     * @return Software[] Returns an array of Software objects
     //     */

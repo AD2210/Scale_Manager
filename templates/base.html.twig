@@ -7,6 +7,7 @@
     <meta name="author" content="Anthony Delbée">
     <meta name="contact" content="contact.webprocreations@gmail.com">
     <meta name="robots" content="noindex, nofollow">
+    <meta name="turbo-cache-control" content="no-cache">
     <script src="https://kit.fontawesome.com/988c8cacf7.js" crossorigin="anonymous"></script>
 
     <title>{% block title %}Scale Manager{% endblock %}</title>
@@ -27,10 +28,12 @@
            class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
             <span class="fs-4">SCALE Manager</span> </a>
         <hr>
-        <ul class="nav nav-pills flex-column mb-auto">
+        <ul class="nav nav-pills flex-column mb-auto" id="sidebarMenu">
             <!-- Nav Button -->
             <li class="nav-item">
-                <a href="{{ path('app_project_index') }}" class="nav-link" aria-current="page">
+                {% set isActive = app.request.attributes.get('_route') starts with 'app_project_index' %}
+                <a href="{{ path('app_project_index') }}" class="nav-link {{ isActive ? 'active' : '' }}"
+                   aria-current="page">
                     <div class="d-flex align-items-center gap-2">
                         <i class="fa-solid fa-house"></i>
                         Accueil
@@ -39,7 +42,8 @@
             </li>
             <!-- End Nav Button -->
             <li class="nav-item">
-                <a href="#" class="nav-link active" aria-current="page">
+                {% set isActive = app.request.attributes.get('_route') starts with '#' %}
+                <a href="#" class="nav-link {{ isActive ? 'active' : '' }}" aria-current="page">
                     <div class="d-flex align-items-center gap-2">
                         <i class="fa-solid fa-gauge-high"></i>
                         Dashboard
@@ -48,53 +52,74 @@
             </li>
             <!-- Item avec collapse -->
             <!-- Section Projet -->
-            <li data-controller="collapse-arrow"
-                data-bs-toggle="collapse"
-                data-bs-target="#collapseProjet"
-                role="button"
-                aria-expanded="false"
-                aria-controls="collapseProjet"
-                class="nav-item">
-                <a class="nav-link d-flex justify-content-between align-items-center">
-                    <span><i class="fa-solid fa-diagram-project me-2"></i> Projet</span>
-                    <i data-collapse-arrow-target="icon" class="fa-solid fa-chevron-down transition"></i>
-                </a>
-                <div class="collapse ps-3" id="collapseProjet">
-                    <ul class="nav flex-column">
-                        <li class="nav-item"><a class="nav-link" href="#">Sous-projet 1</a></li>
-                        <li class="nav-item"><a class="nav-link" href="#">Sous-projet 2</a></li>
-                    </ul>
-                </div>
-            </li>
-
+            {% set activeProjects = active_projects() %}
+            {% if activeProjects is not empty %}
+                {% set currentProjectId = app.request.attributes.get('id') %}
+                <li class="nav-item">
+                    {% set isActive = app.request.attributes.get('_route') starts with 'app_project_' %}
+                    <a class="nav-link d-flex justify-content-between align-items-center"
+                       data-bs-toggle="collapse"
+                       href="#collapseProjet"
+                       role="button"
+                       aria-expanded="{{ isActive ? 'true' : 'false' }}"
+                       aria-controls="collapseProjet">
+                        <span><i class="fa-solid fa-diagram-project me-2"></i>Projet en cours</span>
+                        <i data-role="arrow" class="fa-solid fa-chevron-down transition"></i>
+                    </a>
+                    <div class="collapse ps-3 {{ isActive ? 'show' : '' }}" id="collapseProjet" data-bs-parent="#sidebarMenu">
+                        <ul class="nav flex-column">
+                            {% for project in activeProjects %}
+                                <li class="nav-item">
+                                    {% set isActive = app.request.attributes.get('_route') starts with 'app_manager_' %} {# @todo regarder pour le lien dynamique #}
+                                    <a href="{{ path('app_project_show', { id: project.id }) }}"
+                                       class="nav-link {{ currentProjectId == project.id ? 'active' : '' }}">
+                                        {{ project.title|length > 20 ? project.title|slice(0, 20) ~ '…' : project.title }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </li>
+            {% endif %}
 
             <!-- Section Base -->
             <li class="nav-item">
+                {% set isActive = app.request.attributes.get('_route') starts with 'app_base_' %}
                 <a class="nav-link d-flex justify-content-between align-items-center"
                    data-bs-toggle="collapse"
                    href="#collapseBase"
                    role="button"
-                   aria-expanded="false"
+                   aria-expanded="{{ isActive ? 'true' : 'false' }}"
                    aria-controls="collapseBase">
                     <span><i class="fa-solid fa-database me-2"></i> Base</span>
-                    <i class="fa-solid fa-chevron-down transition" id="arrowBase"></i>
+                    <i class="fa-solid fa-chevron-down transition" data-role="arrow"></i>
                 </a>
-                <div class="collapse ps-3" id="collapseBase">
+                <div class="collapse ps-3 {{ isActive ? 'show' : '' }}" id="collapseBase" data-bs-parent="#sidebarMenu">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_customer_list') }}">Clients</a>
+                            {% set isActive = app.request.attributes.get('_route') starts with 'app_base_customer_' %}
+                            <a class="nav-link {{ isActive ? 'active' : '' }}"
+                               href="{{ path('app_base_customer_list') }}">Clients</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_manager_list') }}">Responsables</a>
+                            {% set isActive = app.request.attributes.get('_route') starts with 'app_base_manager_' %}
+                            <a class="nav-link {{ isActive ? 'active' : '' }}"
+                               href="{{ path('app_base_manager_list') }}">Responsables</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_software_list') }}">Logiciels</a>
+                            {% set isActive = app.request.attributes.get('_route') starts with 'app_base_software_' %}
+                            <a class="nav-link {{ isActive ? 'active' : '' }}"
+                               href="{{ path('app_base_software_list') }}">Logiciels</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_sub_contractor_list') }}">Sous-traitant</a>
+                            {% set isActive = app.request.attributes.get('_route') starts with 'app_base_sub_contractor_' %}
+                            <a class="nav-link {{ isActive ? 'active' : '' }}"
+                               href="{{ path('app_base_sub_contractor_list') }}">Sous-traitant</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_slicer_profil_list') }}">Profil Slicer</a>
+                            {% set isActive = app.request.attributes.get('_route') starts with 'app_base_slicer_profil_' %}
+                            <a class="nav-link {{ isActive ? 'active' : '' }}"
+                               href="{{ path('app_base_slicer_profil_list') }}">Profil Slicer</a>
                         </li>
                     </ul>
                 </div>
@@ -102,41 +127,57 @@
 
             <!-- Section Process -->
             <li class="nav-item">
+                {% set isActive = app.request.attributes.get('_route') starts with 'app_process_' %}
                 <a class="nav-link d-flex justify-content-between align-items-center"
                    data-bs-toggle="collapse"
                    href="#collapseProcess"
                    role="button"
-                   aria-expanded="false"
+                   aria-expanded="{{ isActive ? 'true' : 'false' }}"
                    aria-controls="collapseProcess">
                     <span><i class="fa-solid fa-industry me-2"></i> Process</span>
-                    <i class="fa-solid fa-chevron-down transition" id="arrowBase"></i>
+                    <i class="fa-solid fa-chevron-down transition" data-role="arrow"></i>
                 </a>
-                <div class="collapse ps-3" id="collapseProcess">
+                <div class="collapse ps-3 {{ isActive ? 'show' : '' }}" id="collapseProcess"
+                     data-bs-parent="#sidebarMenu">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_print3d_material_list') }}">Matériaux</a>
+                            {% set isActive = app.request.attributes.get('_route') starts with 'app_process_print3d_material' %}
+                            <a class="nav-link {{ isActive ? 'active' : '' }}"
+                               href="{{ path('app_process_print3d_material_list') }}">Matériaux</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_print3d_process_list') }}">Impression 3D</a>
+                            {% set isActive = app.request.attributes.get('_route') starts with 'app_process_print3d_process' %}
+                            <a class="nav-link {{ isActive ? 'active' : '' }}"
+                               href="{{ path('app_process_print3d_process_list') }}">Impression 3D</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_treatment_process_list') }}">Traitements</a>
+                            {% set isActive = app.request.attributes.get('_route') starts with 'app_process_treatment' %}
+                            <a class="nav-link {{ isActive ? 'active' : '' }}"
+                               href="{{ path('app_process_treatment_process_list') }}">Traitements</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_finish_process_list') }}">Finitions</a>
+                            {% set isActive = app.request.attributes.get('_route') starts with 'app_process_finish' %}
+                            <a class="nav-link {{ isActive ? 'active' : '' }}"
+                               href="{{ path('app_process_finish_process_list') }}">Finitions</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_assembly_process_list') }}">Assemblage</a>
+                            {% set isActive = app.request.attributes.get('_route') starts with 'app_process_assembly' %}
+                            <a class="nav-link {{ isActive ? 'active' : '' }}"
+                               href="{{ path('app_process_assembly_process_list') }}">Assemblage</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ path('app_quality_process_list') }}">Qualité</a>
+                            {% set isActive = app.request.attributes.get('_route') starts with 'app_process_quality' %}
+                            <a class="nav-link {{ isActive ? 'active' : '' }}"
+                               href="{{ path('app_process_quality_process_list') }}">Qualité</a>
                         </li>
                     </ul>
                 </div>
             </li>
             <!-- End DropDown Nav Button -->
             <li class="nav-item">
-                <a href="{{ path('app_gamme_preset') }}" class="nav-link" aria-current="page">
+                {% set isActive = app.request.attributes.get('_route') starts with 'app_gamme_' %}
+                <a href="{{ path('app_gamme_preset') }}" class="nav-link {{ isActive ? 'active' : '' }}"
+                   aria-current="page">
                     <div class="d-flex align-items-center gap-2">
                         <i class="fa-solid fa-circle-nodes"></i>
                         Gammes

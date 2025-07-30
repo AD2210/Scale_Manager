@@ -26,7 +26,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class ListController extends AbstractController
 {
-    #[Route('/customers', name: 'app_customer_list')]
+    #[Route('/customers', name: 'app_base_customer_list')]
     public function customerList(CustomerRepository $repo): Response
     {
         return $this->render('base/customer/list.html.twig', [
@@ -34,7 +34,7 @@ class ListController extends AbstractController
         ]);
     }
 
-    #[Route('/managers', name: 'app_manager_list')]
+    #[Route('/managers', name: 'app_base_manager_list')]
     public function managerList(ManagerRepository $repo): Response
     {
         return $this->render('base/manager/list.html.twig', [
@@ -42,7 +42,7 @@ class ListController extends AbstractController
         ]);
     }
 
-    #[Route('/softwares', name: 'app_software_list')]
+    #[Route('/softwares', name: 'app_base_software_list')]
     public function softwareList(SoftwareRepository $repo): Response
     {
         return $this->render('base/software/list.html.twig', [
@@ -50,7 +50,7 @@ class ListController extends AbstractController
         ]);
     }
 
-    #[Route('/sub-contractors', name: 'app_sub_contractor_list')]
+    #[Route('/sub-contractors', name: 'app_base_sub_contractor_list')]
     public function subContractorList(SubContractorRepository $repo): Response
     {
         return $this->render('base/subContractor/list.html.twig', [
@@ -58,7 +58,7 @@ class ListController extends AbstractController
         ]);
     }
 
-    #[Route('/slicer-profils', name: 'app_slicer_profil_list')]
+    #[Route('/slicer-profils', name: 'app_base_slicer_profil_list')]
     public function slicerProfilList(SlicerProfilRepository $repo): Response
     {
         return $this->render('base/slicerProfil/list.html.twig', [
@@ -66,7 +66,7 @@ class ListController extends AbstractController
         ]);
     }
 
-    #[Route('/print3d-material', name: 'app_print3d_material_list')]
+    #[Route('/print3d-material', name: 'app_process_print3d_material_list')]
     public function print3dMaterialList(Print3DMaterialRepository $repo, TreatmentProcessRepository $treatRepo, FinishProcessRepository $finishRepo): Response
     {
         return $this->render('process/print3dMaterial/list.html.twig', [
@@ -76,7 +76,7 @@ class ListController extends AbstractController
         ]);
     }
 
-    #[Route('/print3d-process', name: 'app_print3d_process_list')]
+    #[Route('/print3d-process', name: 'app_process_print3d_process_list')]
     public function print3dProcessList(Print3DProcessRepository $repo, TreatmentProcessRepository $treatRepo, FinishProcessRepository $finishRepo): Response
     {
         return $this->render('process/print3dProcess/list.html.twig', [
@@ -86,7 +86,7 @@ class ListController extends AbstractController
         ]);
     }
 
-    #[Route('/treatment-process', name: 'app_treatment_process_list')]
+    #[Route('/treatment-process', name: 'app_process_treatment_process_list')]
     public function treatmentProcessList(TreatmentProcessRepository $repo): Response
     {
         return $this->render('process/treatmentProcess/list.html.twig', [
@@ -94,7 +94,7 @@ class ListController extends AbstractController
         ]);
     }
 
-    #[Route('/finish-process', name: 'app_finish_process_list')]
+    #[Route('/finish-process', name: 'app_process_finish_process_list')]
     public function finishProcessList(FinishProcessRepository $repo): Response
     {
         return $this->render('process/finishProcess/list.html.twig', [
@@ -102,7 +102,7 @@ class ListController extends AbstractController
         ]);
     }
 
-    #[Route('/assembly-process', name: 'app_assembly_process_list')]
+    #[Route('/assembly-process', name: 'app_process_assembly_process_list')]
     public function assemblyProcessList(AssemblyProcessRepository $repo): Response
     {
         return $this->render('process/assemblyProcess/list.html.twig', [
@@ -110,7 +110,7 @@ class ListController extends AbstractController
         ]);
     }
 
-    #[Route('/quality-process', name: 'app_quality_process_list')]
+    #[Route('/quality-process', name: 'app_process_quality_process_list')]
     public function qualityProcessList(QualityProcessRepository $repo): Response
     {
         return $this->render('process/qualityProcess/list.html.twig', [
@@ -123,6 +123,7 @@ class ListController extends AbstractController
     {
         return $this->render('model/list.html.twig', [
             'items' => $repo->findBy(['project' => $project]),
+            'project' => $project,
             'slicerProfils' => $profilRepository->findBy(['isActive' => true]),
         ]);
     }
@@ -137,6 +138,7 @@ class ListController extends AbstractController
     {
         return $this->render('print3d/list.html.twig', [
             'items' => $modelRepository->findBy(['project' => $project]),
+            'project' => $project,
             'print3dProcesses' => $processRepository->findBy(['isActive' => true]),
             'print3dMaterials' => $materialRepository->findBy(['isActive' => true]),
             'print3dStatuses' => Print3DStatusEnum::cases(),
@@ -154,6 +156,7 @@ class ListController extends AbstractController
         $models = $modelRepository->findBy(['project' => $project]);
         return $this->render('treatment/list.html.twig', [
             'items' => $models,
+            'project' => $project,
             'treatmentProcesses' => $processRepository->findBy(['isActive' => true]),
             'treatmentOperations' => $operationRepository->findBy(['model' => $models]),
         ]);
@@ -170,6 +173,7 @@ class ListController extends AbstractController
         $models = $modelRepository->findBy(['project' => $project]);
         return $this->render('finish/list.html.twig', [
             'items' => $models,
+            'project' => $project,
             'finishProcesses' => $processRepository->findBy(['isActive' => true]),
             'finishOperations' => $operationRepository->findBy(['model' => $models]),
         ]);
@@ -186,6 +190,7 @@ class ListController extends AbstractController
         $models = $modelRepository->findBy(['project' => $project]);
         return $this->render('assembly/list.html.twig', [
             'items' => $models,
+            'project' => $project,
             'assemblyProcesses' => $processRepository->findBy(['isActive' => true]),
             'assemblyOperations' => $operationRepository->findBy(['model' => $models]),
         ]);
@@ -202,6 +207,7 @@ class ListController extends AbstractController
         $models = $modelRepository->findBy(['project' => $project]);
         return $this->render('quality/list.html.twig', [
             'items' => $models,
+            'project' => $project,
             'qualityProcesses' => $processRepository->findBy(['isActive' => true]),
             'qualityOperations' => $operationRepository->findBy(['model' => $models]),
         ]);

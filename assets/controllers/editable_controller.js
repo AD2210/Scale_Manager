@@ -34,7 +34,13 @@ export default class extends Controller {
         } else if (target.type === 'file') {
             // Cas des fichiers
             const file = target.files[0]
-            if (!file) return
+            if (!file) {
+                console.error('Fichier absent')
+                document.dispatchEvent(new CustomEvent('toast:error', {
+                    detail: {message: 'Fichier absent'}
+                }))
+                return
+            }
 
             const formData = new FormData()
             formData.append(this.fieldValue, file)
@@ -129,9 +135,7 @@ export default class extends Controller {
                     }))
 
                     // On recharge la page.
-                    if (this.typeValue === 'model') {
-                        window.location.reload()
-                    }
+                    window.setTimeout(() => window.location.reload(), 1000)
                 }
             })
             .catch(error => {

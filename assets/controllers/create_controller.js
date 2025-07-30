@@ -4,7 +4,7 @@ export default class extends Controller {
     static targets = ['form']
     static values = {
         type: String,
-        reloadDelay: { type: Number, default: 1500 } // délai en ms avant rechargement
+        reloadDelay: { type: Number, default: 1000 } // délai en ms avant rechargement
     }
 
     async create(event) {
