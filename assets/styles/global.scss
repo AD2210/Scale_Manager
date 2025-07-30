@@ -145,15 +145,11 @@ main {
     background-color: var(--bs-tertiary-bg);
 }
 
-.scrollarea {
-    overflow-y: auto;
-}
-
 .transition {
     transition: transform 0.3s ease;
 }
 
-.rotate-180 {
+.nav-link[aria-expanded="true"] .transition {
     transform: rotate(180deg);
 }
 

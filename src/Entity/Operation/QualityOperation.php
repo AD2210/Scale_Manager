@@ -21,7 +21,7 @@ class QualityOperation
     #[ORM\ManyToOne(inversedBy: 'qualityOperations')]
     private ?QualityProcess $qualityProcess = null;
 
-    #[ORM\ManyToOne(inversedBy: 'qualityOperations')]
+    #[ORM\ManyToOne(inversedBy: 'qualityOperation')]
     private ?Model $model = null;
 
     public function getId(): ?int

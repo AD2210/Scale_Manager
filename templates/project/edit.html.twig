@@ -3,7 +3,9 @@
 {% block title %}Edition Projet{% endblock %}
 
 {% block page_header %}
-    <h1 class="h4 m-0">Modifier le projet - {{ project.title }}</h1>
+    <h1 class="h4 m-0">Modifier le projet -
+        <a href="{{ path('app_project_show', { id: project.id }) }}"
+           class="text-decoration-underline">{{ project.title }}</a></h1>
 {% endblock %}
 
 {% block body %}

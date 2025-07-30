@@ -13,6 +13,7 @@ use App\Service\StatusCalculator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -164,6 +165,44 @@ final class ProjectController extends AbstractController
         /** @noinspection UseControllerShortcuts */
         return (new BinaryFileResponse($filePath))
             ->setContentDisposition(ResponseHeaderBag::DISPOSITION_INLINE);
+    }
+
+    #[Route('/project/{id}/upload/{type}', name: 'project_file_upload', methods: ['POST'])]
+    public function upload(Project $project, string $type, Request $request, FileManagerService $fileManager, EntityManagerInterface $em): JsonResponse
+    {
+        /** @var UploadedFile|null $file */
+        $file = $request->files->get('file');
+        if (!$file) {
+            return $this->json(['success' => false, 'message' => 'Aucun fichier transmis'], 400);
+        }
+
+        if ($type === 'quote') {
+            $fileManager->deleteFile($project->getQuoteLink());
+            $project->setQuoteLink($fileManager->handleProjectFileUpload($project, $file, 'quote'));
+        }else if ($type === 'specification') {
+            $fileManager->deleteFile($project->getSpecificationLink());
+            $project->setSpecificationLink($fileManager->handleProjectFileUpload($project, $file, 'spec'));
+        } else{
+            return $this->json(['success' => false, 'message' => 'Type de fichier invalide'], 400);
+        }
+        $em->flush();
+        return $this->json(['success' => true]);
+    }
+
+    #[Route('/project/{id}/delete-file/{type}', name: 'project_file_delete', methods: ['DELETE'])]
+    public function deleteFile(Project $project, string $type, FileManagerService $fileManager, EntityManagerInterface $em): JsonResponse
+    {
+        if ($type === 'quote') {
+            $fileManager->deleteFile($project->getQuoteLink());
+            $project->setQuoteLink(null);
+        }else if ($type === 'specification') {
+            $fileManager->deleteFile($project->getSpecificationLink());
+            $project->setSpecificationLink(null);
+        } else{
+            return $this->json(['success' => false, 'message' => 'Type de fichier invalide'], 400);
+        }
+        $em->flush();
+        return $this->json(['success' => true]);
     }
 
     #[Route('/api/project/{id}/check-models', name: 'app_project_check_models', methods: ['GET'])]

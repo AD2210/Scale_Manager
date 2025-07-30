@@ -2,10 +2,14 @@
 
 {% set entityType = 'customerData' %}
 
-{% block title %}Données clients{% endblock %}
+{% block title %}Données clients -
+    {{ project.title }}
+{% endblock %}
 
 {% block page_header %}
-    <h1 class="h4 mb-0">Données clients</h1>
+    <h1 class="h4 mb-0">Données clients -
+        <a href="{{ path('app_project_show', { id: project.id }) }}"
+           class="text-decoration-underline">{{ project.title }}</a></h1>
 {% endblock %}
 
 {% block table_head %}

@@ -19,8 +19,9 @@ export default class extends Controller {
     }
 
     // Methode pour la Mise à jour des champs inline et au chargement des presets
-    async updateField(event) {
+    async updateField(event, source = 'user') {
         console.log('gamme #updateField');
+        if (this.skipUpdateField) return;
         const field = event.target.dataset.gammeFieldParam;
         let value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
 
@@ -65,7 +66,7 @@ export default class extends Controller {
                     'Content-Type': 'application/json',
                     'X-CSRF-Token': token
                 },
-                body: JSON.stringify({field, value})
+                body: JSON.stringify({field, value, source})
             });
 
             if (!response.ok) {
@@ -82,7 +83,8 @@ export default class extends Controller {
                 detail: {message: 'Erreur lors de la requête'}
             }));
         }
-        window.location.reload();
+
+        //if (source === 'user') window.location.reload();
     }
 
     // Methode de chargement des Presets
@@ -114,7 +116,7 @@ export default class extends Controller {
                                 dataset: {gammeFieldParam: field},
                                 value: value
                             }
-                        });
+                        }, 'preset');
                     }
                 }
             }
@@ -144,7 +146,9 @@ export default class extends Controller {
                     );
 
                     if (autocompleteController) {
+                        this.skipUpdateField = true;
                         autocompleteController.tomSelect.clear();
+
                         data.processes.forEach(process => {
                             autocompleteController.tomSelect.addOption({
                                 value: process.value,
@@ -152,7 +156,7 @@ export default class extends Controller {
                             });
                             autocompleteController.tomSelect.addItem(process.value);
                         });
-
+                        this.skipUpdateField = false;
                         // Mettre à jour les opérations dans le modèle
                         await this.updateField({
                             target: {
@@ -195,8 +199,10 @@ export default class extends Controller {
                     );
 
                     if (autocompleteController) {
+                        this.skipUpdateField = true;
                         // Mettre à jour les valeurs sélectionnées
                         autocompleteController.tomSelect.clear();
+
                         data.processes.forEach(process => {
                             autocompleteController.tomSelect.addOption({
                                 value: process.value,
@@ -205,6 +211,7 @@ export default class extends Controller {
                             autocompleteController.tomSelect.addItem(process.value);
                         });
 
+                        this.skipUpdateField = false;
                         // Mettre à jour les opérations dans le modèle
                         await this.updateField({
                             target: {
@@ -257,17 +264,6 @@ export default class extends Controller {
                         }
                     }
                 }
-
-                // Mettre à jour tous les champs
-                if (data.print3dPreset) {
-                    await this.loadPrint3DPresetData(data.print3dPreset);
-                }
-                if (data.treatmentPreset) {
-                    await this.loadTreatmentPresetData(data.treatmentPreset);
-                }
-                if (data.finishPreset) {
-                    await this.loadFinishPresetData(data.finishPreset);
-                }
             }
         } catch (error) {
             console.error('Erreur lors du chargement du preset global:', error);
@@ -275,74 +271,6 @@ export default class extends Controller {
                 detail: {message: 'Erreur lors du chargement du preset 3D'}
             }));
 
-        }
-    }
-
-    // Méthodes pour charger les données des sous-presets lors d'un chargement global
-    async loadPrint3DPresetData(presetId) {
-        console.log('gamme#loadPrint3DPresetData');
-        // Créer un événement synthétique
-        const event = {
-            target: document.querySelector('select[data-gamme-field-param="print3dPreset"]')
-        };
-
-        // Définir la valeur du select
-        if (event.target) {
-            event.target.value = presetId;
-            // Appeler la méthode loadPrint3DPreset avec l'événement synthétique
-            await this.loadPrint3DPreset(event);
-        }
-    }
-
-    async loadTreatmentPresetData(presetId) {
-        console.log('gamme#loadTreatmentPresetData');
-        const response = await fetch(`/gamme/api/preset/treatment/${presetId}/load`);
-        if (response.ok) {
-            const data = await response.json();
-            if (this.treatmentSelectTarget) {
-                const autocompleteController = this.application.getControllerForElementAndIdentifier(
-                    this.treatmentSelectTarget,
-                    'symfony--ux-autocomplete--autocomplete'
-                );
-
-                if (autocompleteController) {
-                    autocompleteController.tomSelect.clear();
-                    data.processes.forEach(process => {
-                        autocompleteController.tomSelect.addOption({
-                            value: process.value,
-                            text: process.text
-                        });
-                    });
-                    // Ajouter tous les éléments d'un coup
-                    autocompleteController.tomSelect.addItems(data.processes.map(p => p.value));
-                }
-            }
-        }
-    }
-
-    async loadFinishPresetData(presetId) {
-        console.log('gamme#loadFinishPresetData');
-        const response = await fetch(`/gamme/api/preset/finish/${presetId}/load`);
-        if (response.ok) {
-            const data = await response.json();
-            if (this.finishSelectTarget) {
-                const autocompleteController = this.application.getControllerForElementAndIdentifier(
-                    this.finishSelectTarget,
-                    'symfony--ux-autocomplete--autocomplete'
-                );
-
-                if (autocompleteController) {
-                    autocompleteController.tomSelect.clear();
-                    data.processes.forEach(process => {
-                        autocompleteController.tomSelect.addOption({
-                            value: process.value,
-                            text: process.text
-                        });
-                    });
-                    // Ajouter tous les éléments d'un coup
-                    autocompleteController.tomSelect.addItems(data.processes.map(p => p.value));
-                }
-            }
         }
     }
 
