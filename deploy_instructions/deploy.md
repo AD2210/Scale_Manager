@@ -73,3 +73,12 @@ Donner le propriété du dossier au user actuel (permet d'executer les commande 
 ````bash
 sudo chown -R $USER:$(id -gn) {mondossier}
 ````
+
+Sur le poste serveur ouvrir les port WSL puis autorise le firewall, ajouter une regle pour les postes distants également
+```powershell
+netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=80 connectaddress=172.31.251.39 connectport=80
+netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=443 connectaddress=172.31.251.39 connectport=443
+
+New-NetFirewallRule -DisplayName "WSL2 Port Forwarding" -Direction Inbound -LocalPort 80,443 -Action Allow -Protocol TCP
+
+```
