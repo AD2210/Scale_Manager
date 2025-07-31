@@ -33,7 +33,7 @@ services:
         protocol: tcp
       # HTTP/3
       - target: 443
-        published: ${HTTP3_PORT:-8443}
+        published: ${HTTP3_PORT:-443}
         protocol: udp
 
 # Mercure is installed as a Caddy module, prevent the Flex recipe from installing another service
@@ -43,6 +43,7 @@ services:
 ###> doctrine/doctrine-bundle ###
   database:
     image: postgres:${POSTGRES_VERSION:-16}-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-app}
       # You should definitely change the password in production
