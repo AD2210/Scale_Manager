@@ -165,7 +165,7 @@ readonly class StatusCalculator
             $finishProgress['progress'] ?? 0
         ]);
 
-        return round(($totalProgress / 7) * 100, 2);
+        return round(($totalProgress / 7) , 0);
     }
 
     public function getDashboardDataset(Project $project): array
@@ -180,31 +180,31 @@ readonly class StatusCalculator
         'workflowSteps' => [
             [
                 'label' => 'Données client',
-                'percent' => $this->calculateCustomerDataProgress($project)['progress'] ?? 0,
+                'percent' => round($this->calculateCustomerDataProgress($project)['progress'] ?? 0, 0)
             ],
             [
                 'label' => 'Modèles 3D',
-                'percent' => $this->calculateModelProgress($project)['progress'] ?? 0,
+                'percent' => round($this->calculateModelProgress($project)['progress'] ?? 0,0)
             ],
             [
                 'label' => 'Impression 3D',
-                'percent' => $this->calculatePrint3DProgress($project)['progress'] ?? 0,
-            ],
-            [
-                'label' => 'Assemblage',
-                'percent' => $this->calculateAssemblyProgress($project)['progress'] ?? 0,
-            ],
-            [
-                'label' => 'Qualité',
-                'percent' => $this->calculateQualityProgress($project)['progress'] ?? 0,
+                'percent' => round($this->calculatePrint3DProgress($project)['progress'] ?? 0,0)
             ],
             [
                 'label' => 'Post-traitement',
-                'percent' => $this->calculateTreatmentProgress($project)['progress'] ?? 0,
+                'percent' => round($this->calculateTreatmentProgress($project)['progress'] ?? 0,0)
             ],
             [
                 'label' => 'Finition',
-                'percent' => $this->calculateFinishProgress($project)['progress'] ?? 0,
+                'percent' => round($this->calculateFinishProgress($project)['progress'] ?? 0,0)
+            ],
+            [
+                'label' => 'Assemblage',
+                'percent' => round($this->calculateAssemblyProgress($project)['progress'] ?? 0,0)
+            ],
+            [
+                'label' => 'Qualité',
+                'percent' => round($this->calculateQualityProgress($project)['progress'] ?? 0,0)
             ],
         ],
     ];
