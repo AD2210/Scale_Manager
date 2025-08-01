@@ -144,5 +144,70 @@ readonly class StatusCalculator
         $progress = round(($done / $total) * 100, 2);
         return compact('done', 'total', 'progress');
     }
+
+    public function computeGlobalProgress(Project $project): float
+    {
+        $customerDataProgress = $this->calculateCustomerDataProgress($project);
+        $modelProgress = $this->calculateModelProgress($project);
+        $print3DProgress = $this->calculatePrint3DProgress($project);
+        $assemblyProgress = $this->calculateAssemblyProgress($project);
+        $qualityProgress = $this->calculateQualityProgress($project);
+        $treatmentProgress = $this->calculateTreatmentProgress($project);
+        $finishProgress = $this->calculateFinishProgress($project);
+
+        $totalProgress = array_sum([
+            $customerDataProgress['progress'] ?? 0,
+            $modelProgress['progress'] ?? 0,
+            $print3DProgress['progress'] ?? 0,
+            $assemblyProgress['progress'] ?? 0,
+            $qualityProgress['progress'] ?? 0,
+            $treatmentProgress['progress'] ?? 0,
+            $finishProgress['progress'] ?? 0
+        ]);
+
+        return round(($totalProgress / 7) * 100, 2);
+    }
+
+    public function getDashboardDataset(Project $project): array
+{
+    return [
+        'title' => $project->getTitle(),
+        'customer' => $project->getCustomer()?->getName() ?? 'Client inconnu',
+        'manager' => $project->getManager()?->getName() ?? 'Non défini',
+        'deadline' => $project->getDeadline(),
+        'globalProgress' => $this->computeGlobalProgress($project),
+
+        'workflowSteps' => [
+            [
+                'label' => 'Données client',
+                'percent' => $this->calculateCustomerDataProgress($project)['progress'] ?? 0,
+            ],
+            [
+                'label' => 'Modèles 3D',
+                'percent' => $this->calculateModelProgress($project)['progress'] ?? 0,
+            ],
+            [
+                'label' => 'Impression 3D',
+                'percent' => $this->calculatePrint3DProgress($project)['progress'] ?? 0,
+            ],
+            [
+                'label' => 'Assemblage',
+                'percent' => $this->calculateAssemblyProgress($project)['progress'] ?? 0,
+            ],
+            [
+                'label' => 'Qualité',
+                'percent' => $this->calculateQualityProgress($project)['progress'] ?? 0,
+            ],
+            [
+                'label' => 'Post-traitement',
+                'percent' => $this->calculateTreatmentProgress($project)['progress'] ?? 0,
+            ],
+            [
+                'label' => 'Finition',
+                'percent' => $this->calculateFinishProgress($project)['progress'] ?? 0,
+            ],
+        ],
+    ];
+}
 }
 

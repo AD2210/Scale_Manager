@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="ScaleManager est une application Web de gestion de production">
+		<meta name="author" content="Anthony Delbée">
+		<meta name="contact" content="contact.webprocreations@gmail.com">
+		<meta name="robots" content="noindex, nofollow">
+		<meta name="turbo-cache-control" content="no-cache">
+		<script src="https://kit.fontawesome.com/988c8cacf7.js" crossorigin="anonymous"></script>
+		<title>Dashboard</title>
+		{{ encore_entry_link_tags('app') }}
+		{{ encore_entry_script_tags('app') }}
+	</head>
+	<body
+		class="bg-light text-dark">
+
+		<!-- Menu Offcanvas à droite -->
+		<div class="offcanvas offcanvas-end" tabindex="-1" id="projectSelector" aria-labelledby="projectSelectorLabel">
+			<div class="offcanvas-header">
+				<h5 class="offcanvas-title">Sélection des projets</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+			</div>
+			<div class="offcanvas-body" data-controller="dashboard">
+				{% for i in 1..4 %}
+					<div class="mb-3">
+						<label class="form-label">Projet
+							{{ i }}</label>
+						<select class="form-select" data-action="change->dashboard-slot#update" data-slot="{{ i }}" data-slot-target="select">
+							<option value="">-- Sélectionner --</option>
+							{% for project in projects %}
+								<option value="{{ project.id }}" {% if project.dashboardSlot == i %} selected {% endif %}>
+									{{ project.title }}
+								</option>
+							{% endfor %}
+						</select>
+					</div>
+				{% endfor %}
+				<div class="pt-4">
+					<a href="{{ path('app_project_index') }}" class="btn btn-outline-secondary">
+						<div class="d-flex align-items-center gap-2">
+							<i class="fa-solid fa-house"></i>
+							Retour accueil
+						</div>
+					</a>
+				</div>
+			</div>
+		</div>
+
+		<!-- Bouton pour ouvrir le menu -->
+		<button class="btn btn-outline-secondary position-absolute end-0 m-3" data-bs-toggle="offcanvas" data-bs-target="#projectSelector">
+			Menu
+		</button>
+
+		<!-- Grille des 4 cartes -->
+		<div class="container-fluid p-4 h-100">
+			<div class="row row-cols-1 row-cols-md-2 g-4 h-100">
+				{% for project in projectSlots|filter(p => p is not null) %}
+					<div class="col h-50">
+						<div class="card h-100 shadow-sm border-0 rounded-4 p-4 d-flex flex-column justify-content-between">
+							<div>
+								<h4 class="mb-1">{{ project.title }}</h4>
+								<p class="mb-1 text-muted">{{ project.customer.name }}</p>
+								<p class="mb-1">Responsable :
+									<strong>{{ project.manager.name }}</strong>
+								</p>
+								<p class="mb-3">Deadline :
+									<strong>{{ project.deadline|date('d/m/Y') }}</strong>
+								</p>
+
+								<!-- Workflow des 7 étapes -->
+								{% for step in project.workflowSteps %}
+									<div class="mb-1">
+										<small>{{ step.label }}</small>
+										<div class="progress">
+											<div class="progress-bar" role="progressbar" style="width: {{ step.percent }}%" aria-valuenow="{{ step.percent }}" aria-valuemin="0" aria-valuemax="100">
+												{{ step.percent }}%
+											</div>
+										</div>
+										{% if step.percent == 100 %}
+											<span class="badge bg-success">Terminé</span>
+										{% endif %}
+									</div>
+								{% endfor %}
+							</div>
+
+							<!-- Progression globale -->
+							<div class="text-center mt-3">
+								<div class="progress-circle position-relative mx-auto" style="width: 100px; height: 100px;">
+									<svg viewbox="0 0 36 36" class="circular-chart">
+										<path class="circle-bg" d="M18 2.0845
+																																	                         a 15.9155 15.9155 0 0 1 0 31.831
+																																	                         a 15.9155 15.9155 0 0 1 0 -31.831"/>
+										<path class="circle" stroke-dasharray="{{ project.globalProgress }}, 100" d="M18 2.0845
+																														                         a 15.9155 15.9155 0 0 1 0 31.831
+																														                         a 15.9155 15.9155 0 0 1 0 -31.831"/>
+									</svg>
+									<div class="position-absolute top-50 start-50 translate-middle fw-bold">
+										{{ project.globalProgress }}%
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+
+		<style>
+			.circular-chart {
+				width: 100px;
+				height: 100px;
+				transform: rotate(-90deg);
+			}
+			.circle-bg {
+				fill: none;
+				stroke: #eee;
+				stroke-width: 3.8;
+			}
+			.circle {
+				fill: none;
+				stroke: #4e73df;
+				stroke-width: 3.8;
+				stroke-linecap: round;
+				transition: stroke-dasharray 0.3s ease;
+			}
+		</style>
+
+	</body>
+</html>

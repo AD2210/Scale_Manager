@@ -130,6 +130,7 @@ class AppFixtures extends Fixture
             $software = new Software();
             $software->setName($name);
             $software->setIsActive(true);
+            $software->setIsMain(false); 
 
             $om->persist($software);
         }

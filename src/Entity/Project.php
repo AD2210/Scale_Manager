@@ -57,6 +57,9 @@ class Project
     #[ORM\Column]
     private ?bool $isQualityOk = false;
 
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $dashboardSlot = null;
+
     /**
      * @var Collection<int, QualityProcess>
      */
@@ -245,6 +248,17 @@ class Project
     {
         $this->qualityProcess->removeElement($qualityProcess);
 
+        return $this;
+    }
+
+    public function getDashboardSlot(): ?int
+    {
+        return $this->dashboardSlot;
+    }
+
+    public function setDashboardSlot(?int $dashboardSlot): self
+    {
+        $this->dashboardSlot = $dashboardSlot;
         return $this;
     }
 }
