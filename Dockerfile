@@ -74,6 +74,7 @@ RUN set -eux; \
 
 COPY --link frankenphp/conf.d/20-app.dev.ini $PHP_INI_DIR/app.conf.d/
 
+COPY composer.* symfony.* ./
 RUN composer install
 
 RUN npm run dev
