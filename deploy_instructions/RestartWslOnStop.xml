@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-16"?>
+<Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
+  <RegistrationInfo>
+    <Date>2025-08-01T22:00:00</Date>
+    <Author>Rance Performance</Author>
+    <Description>Redémarre wslservice quand il s'arrête.</Description>
+  </RegistrationInfo>
+  <Triggers>
+    <EventTrigger>
+      <Subscription>
+        <![CDATA[
+<QueryList>
+  <Query Id="0" Path="System">
+    <Select Path="System">
+      *[System[(EventID=7036)]]
+      and
+      *[EventData[Data[@Name='param1']='wslservice']]
+      and
+      *[EventData[Data[@Name='param2']='stopped']]
+    </Select>
+  </Query>
+</QueryList>
+        ]]>
+      </Subscription>
+      <Enabled>true</Enabled>
+    </EventTrigger>
+  </Triggers>
+  <Principals>
+    <Principal id="Author">
+      <UserId>S-1-5-18</UserId> <!-- SYSTEM -->
+      <RunLevel>HighestAvailable</RunLevel>
+    </Principal>
+  </Principals>
+  <Settings>
+    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
+    <DisallowStartIfOnBatteries>false</DisallowStartIfOnBatteries>
+    <StopIfGoingOnBatteries>false</StopIfGoingOnBatteries>
+    <AllowHardTerminate>true</AllowHardTerminate>
+    <StartWhenAvailable>true</StartWhenAvailable>
+    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>
+    <IdleSettings>
+      <StopOnIdleEnd>false</StopOnIdleEnd>
+      <RestartOnIdle>false</RestartOnIdle>
+    </IdleSettings>
+    <AllowStartOnDemand>true</AllowStartOnDemand>
+    <Enabled>true</Enabled>
+    <Hidden>false</Hidden>
+    <RunOnlyIfIdle>false</RunOnlyIfIdle>
+    <WakeToRun>false</WakeToRun>
+    <ExecutionTimeLimit>PT1H</ExecutionTimeLimit>
+    <Priority>7</Priority>
+  </Settings>
+  <Actions Context="Author">
+    <Exec>
+      <Command>powershell.exe</Command>
+      <Arguments>-NoProfile -ExecutionPolicy Bypass -Command "Start-Service -Name wslservice"</Arguments>
+    </Exec>
+  </Actions>
+</Task>
