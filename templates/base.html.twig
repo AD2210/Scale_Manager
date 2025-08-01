@@ -42,8 +42,8 @@
             </li>
             <!-- End Nav Button -->
             <li class="nav-item">
-                {% set isActive = app.request.attributes.get('_route') starts with '#' %}
-                <a href="#" class="nav-link {{ isActive ? 'active' : '' }}" aria-current="page">
+                {% set isActive = app.request.attributes.get('_route') starts with 'app_dashboard' %}
+                <a href="{{ path('app_dashboard') }}" class="nav-link {{ isActive ? 'active' : '' }}" aria-current="page">
                     <div class="d-flex align-items-center gap-2">
                         <i class="fa-solid fa-gauge-high"></i>
                         Dashboard

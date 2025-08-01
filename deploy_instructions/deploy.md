@@ -73,3 +73,30 @@ Donner le propriété du dossier au user actuel (permet d'executer les commande 
 ````bash
 sudo chown -R $USER:$(id -gn) {mondossier}
 ````
+
+Sur le poste serveur ouvrir les port WSL puis autorise le firewall, ajouter une regle pour les postes distants également
+```powershell
+netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=80 connectaddress=172.31.251.39 connectport=80
+netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=443 connectaddress=172.31.251.39 connectport=443
+
+New-NetFirewallRule -DisplayName "WSL2 Port Forwarding" -Direction Inbound -LocalPort 80,443 -Action Allow -Protocol TCP
+
+```
+
+
+Run `docker compose build --pull --no-cache` to build fresh images
+Run `docker compose up --wait` to set up and start a fresh Symfony project
+Open http://localhost in your favorite web browser
+Run `docker compose down --remove-orphans` to stop the Docker containers.
+
+si buildx ne fonctionne pas correctement :
+
+Étape	Commande / Action
+Supprimer les liens invalides	sudo rm -rf /usr/local/lib/docker/cli-plugins
+Ajouter dépôt Docker officiel si besoin	Instructions sur docs.docker.com/engine/install/ubuntu
+Installer buildx plugin	sudo apt install docker-buildx-plugin
+Installer compose plugin	sudo apt install docker-compose-plugin
+Vérifier les plugins	docker info
+
+pour executer des commande dans le container :
+docker compose exec

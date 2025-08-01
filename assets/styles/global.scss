@@ -165,3 +165,24 @@ main {
     background-color: #fff3cd;
 }
 
+.circular-chart {
+    width: 80px;
+    height: 80px;
+    transform: rotate(-90deg);
+}
+.circle-bg {
+    fill: none;
+    stroke: #eee;
+    stroke-width: 3.8;
+}
+.circle {
+    fill: none;
+    stroke: #198754;
+    stroke-width: 3.8;
+    stroke-linecap: round;
+}
+
+.rotate-90 {
+    transform: rotate(90deg);
+}
+
