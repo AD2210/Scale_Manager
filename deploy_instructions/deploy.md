@@ -92,11 +92,19 @@ Run `docker compose down --remove-orphans` to stop the Docker containers.
 si buildx ne fonctionne pas correctement :
 
 Étape	Commande / Action
-Supprimer les liens invalides	sudo rm -rf /usr/local/lib/docker/cli-plugins
-Ajouter dépôt Docker officiel si besoin	Instructions sur docs.docker.com/engine/install/ubuntu
-Installer buildx plugin	sudo apt install docker-buildx-plugin
-Installer compose plugin	sudo apt install docker-compose-plugin
-Vérifier les plugins	docker info
+Supprimer les liens invalides	`sudo rm -rf /usr/local/lib/docker/cli-plugins`
+Installer buildx plugin	`sudo apt install docker-buildx-plugin`
+Installer compose plugin	`sudo apt install docker-compose-plugin`
+Vérifier les plugins	`docker info`
 
-pour executer des commande dans le container :
-docker compose exec
+pour executer des commandes dans le container :
+`docker compose exec php bash`
+
+au démarrage du container :
+
+```docker php bash
+docker compose exec bin/console doctrine:schema:update --force
+npm install
+npm run dev
+```
+
